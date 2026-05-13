@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "create-dlthub-workspace"
+version = "0.1.0"
+description = "Scaffold a dltHub workspace from the official starter project."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "dltHub" },
+]
+dependencies = [
+  "rich>=13.7",
+  "tomli>=2.0; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+]
+
+[project.scripts]
+create-dlthub-workspace = "create_dlthub_workspace.cli:main"
+create-dlthub-project = "create_dlthub_workspace.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/create_dlthub_workspace"]
