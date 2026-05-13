@@ -7,7 +7,7 @@ This project uses a standard `src/` layout and `uv` for local development.
 Install dependencies into a local virtual environment:
 
 ```bash
-uv sync --extra dev
+make dev
 ```
 
 Run the CLI from the checkout:
@@ -35,13 +35,13 @@ uv run create-dlthub-workspace my-workspace --agent codex
 Run the unit test suite:
 
 ```bash
-uv run python -m unittest discover -s tests
+make test
 ```
 
 Run a quick syntax check:
 
 ```bash
-PYTHONPYCACHEPREFIX=/tmp/create-dlthub-pyc uv run python -m compileall src tests
+make compile
 ```
 
 ## Build
@@ -49,7 +49,7 @@ PYTHONPYCACHEPREFIX=/tmp/create-dlthub-pyc uv run python -m compileall src tests
 Build the source distribution and wheel:
 
 ```bash
-uv build
+make build
 ```
 
 The build artifacts are written to `dist/`.
@@ -60,8 +60,7 @@ Before publishing, verify:
 
 ```bash
 uv run create-dlthub-workspace --help
-uv run python -m unittest discover -s tests
-uv build
+make ci
 ```
 
 The package exposes two console commands:
@@ -70,4 +69,3 @@ The package exposes two console commands:
 create-dlthub-workspace
 create-dlthub-project
 ```
-
