@@ -41,10 +41,10 @@ class UvTests(unittest.TestCase):
 
     @patch("subprocess.run")
     def test_run_uv_command_executes_in_project_directory(self, subprocess_run) -> None:
-        run_uv_command("/usr/local/bin/uv", project_dir="/tmp/workspace", args=["run", "dlt", "--version"])
+        run_uv_command("/usr/local/bin/uv", project_dir="/tmp/workspace", args=["run", "dlthub", "--version"])
 
         subprocess_run.assert_called_once()
-        self.assertEqual(subprocess_run.call_args.args[0], ["/usr/local/bin/uv", "run", "dlt", "--version"])
+        self.assertEqual(subprocess_run.call_args.args[0], ["/usr/local/bin/uv", "run", "dlthub", "--version"])
         self.assertEqual(subprocess_run.call_args.kwargs["cwd"], "/tmp/workspace")
 
 

@@ -13,7 +13,7 @@ def initialize_agent(uv_executable: str, project_dir: Path, agent: str) -> None:
     run_uv_command(
         uv_executable,
         project_dir,
-        ["run", "dlt", "ai", "init", "--agent", agent],
+        ["run", "dlthub", "ai", "init", "--agent", agent],
     )
 
 
@@ -28,5 +28,5 @@ def install_toolkit(uv_executable: str, project_dir: Path, toolkit: str) -> None
     run_uv_command(
         uv_executable,
         project_dir,
-        ["run", "dlt", "ai", "toolkit", toolkit, "install"],
+        ["run", "dlthub", "ai", "toolkit", toolkit, "install"],
     )
