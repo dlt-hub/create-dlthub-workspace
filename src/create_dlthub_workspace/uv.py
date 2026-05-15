@@ -27,7 +27,7 @@ def find_uv() -> str | None:
     return None
 
 
-def ensure_uv(*, assume_yes: bool, confirm_install) -> str:
+def ensure_uv(*, assume_yes: bool, confirm_install, verbose: bool = False) -> str:
     """Return a uv executable, installing uv if the user approves."""
     uv = find_uv()
     if uv:
@@ -36,7 +36,7 @@ def ensure_uv(*, assume_yes: bool, confirm_install) -> str:
     if not assume_yes and not confirm_install("uv is required but was not found. Install uv now?"):
         raise UvError("uv is required. Install uv and run this command again.")
 
-    install_uv()
+    install_uv(verbose=verbose)
     uv = find_uv()
     if uv:
         return uv
@@ -44,36 +44,42 @@ def ensure_uv(*, assume_yes: bool, confirm_install) -> str:
     raise UvError("uv was installed, but it is not available on PATH yet. Open a new terminal and try again.")
 
 
-def install_uv() -> None:
+def install_uv(*, verbose: bool = False) -> None:
     """Install uv with Astral's official standalone installer."""
     system = platform.system().lower()
     if system == "windows":
-        _run_windows_installer()
+        _run_windows_installer(verbose=verbose)
     else:
-        _run_unix_installer()
+        _run_unix_installer(verbose=verbose)
 
 
-def run_uv_sync(uv_executable: str, project_dir: Path) -> None:
+def run_uv_sync(uv_executable: str, project_dir: Path, *, verbose: bool = False) -> None:
     """Run `uv sync` in the generated workspace."""
-    _run([uv_executable, "sync"], cwd=project_dir, isolated_project=True)
+    _run([uv_executable, "sync"], cwd=project_dir, isolated_project=True, verbose=verbose)
 
 
-def run_uv_command(uv_executable: str, project_dir: Path, args: list[str]) -> None:
+def run_uv_command(
+    uv_executable: str,
+    project_dir: Path,
+    args: list[str],
+    *,
+    verbose: bool = False,
+) -> None:
     """Run a uv command in the generated workspace."""
-    _run([uv_executable, *args], cwd=project_dir, isolated_project=True)
+    _run([uv_executable, *args], cwd=project_dir, isolated_project=True, verbose=verbose)
 
 
-def _run_unix_installer() -> None:
+def _run_unix_installer(*, verbose: bool = False) -> None:
     try:
         with urllib.request.urlopen(UV_UNIX_INSTALLER, timeout=30) as response:
             script = response.read()
     except OSError as exc:
         raise UvError(f"Could not download uv installer: {exc}") from exc
 
-    _run(["sh"], input_bytes=script)
+    _run(["sh"], input_bytes=script, verbose=verbose)
 
 
-def _run_windows_installer() -> None:
+def _run_windows_installer(*, verbose: bool = False) -> None:
     powershell = shutil.which("powershell") or shutil.which("pwsh")
     if not powershell:
         raise UvError("PowerShell is required to install uv on Windows.")
@@ -84,7 +90,11 @@ def _run_windows_installer() -> None:
     except OSError as exc:
         raise UvError(f"Could not download uv installer: {exc}") from exc
 
-    _run([powershell, "-ExecutionPolicy", "ByPass", "-Command", "-"], input_bytes=script)
+    _run(
+        [powershell, "-ExecutionPolicy", "ByPass", "-Command", "-"],
+        input_bytes=script,
+        verbose=verbose,
+    )
 
 
 def _run(
@@ -93,6 +103,7 @@ def _run(
     cwd: Path | None = None,
     input_bytes: bytes | None = None,
     isolated_project: bool = False,
+    verbose: bool = False,
 ) -> None:
     try:
         subprocess.run(
@@ -101,12 +112,29 @@ def _run(
             env=_isolated_project_env() if isolated_project else None,
             input=input_bytes,
             check=True,
+            capture_output=not verbose,
         )
     except FileNotFoundError as exc:
         raise UvError(f"Command not found: {command[0]}") from exc
     except subprocess.CalledProcessError as exc:
         joined = " ".join(command)
-        raise UvError(f"Command failed with exit code {exc.returncode}: {joined}") from exc
+        message = f"Command failed with exit code {exc.returncode}: {joined}"
+        if not verbose:
+            captured = _format_captured(exc.stderr, exc.stdout)
+            if captured:
+                message = f"{message}\n\n{captured}"
+        raise UvError(message) from exc
+
+
+def _format_captured(stderr: bytes | None, stdout: bytes | None) -> str:
+    parts: list[str] = []
+    for stream in (stderr, stdout):
+        if not stream:
+            continue
+        decoded = stream.decode("utf-8", errors="replace").rstrip()
+        if decoded:
+            parts.append(decoded)
+    return "\n\n".join(parts)
 
 
 def _common_uv_paths() -> tuple[Path, ...]:

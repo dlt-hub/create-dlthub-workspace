@@ -6,14 +6,12 @@ import argparse
 import sys
 from pathlib import Path
 
-from rich.progress import Progress, SpinnerColumn, TextColumn
-
 from .config import AGENTS, DEFAULT_AGENT, DEFAULT_TEMPLATE_DIR, DEFAULT_TEMPLATE_REF, TOOLKITS
 from .dlt_ai import initialize_agent, install_toolkit
 from .errors import WorkspaceError
 from .project_metadata import apply_workspace_name
 from .scaffold import download_scaffold
-from .ui import choose_agent, confirm, console, print_banner, print_next_steps
+from .ui import choose_agent, confirm, console, print_banner, print_next_steps, step
 from .uv import ensure_uv, run_uv_sync
 
 
@@ -33,6 +31,12 @@ def build_parser() -> argparse.ArgumentParser:
         "-y",
         action="store_true",
         help="Accept defaults and approve required setup prompts.",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Stream output from underlying subprocesses (uv, dlthub).",
     )
     parser.add_argument(
         "--template-ref",
@@ -69,20 +73,19 @@ def main(argv: list[str] | None = None) -> int:
 
 def run(args: argparse.Namespace) -> None:
     project_dir = Path(args.project_dir).expanduser().resolve()
+    verbose = args.verbose
 
     print_banner()
     console.print()
 
     agent = args.agent or (DEFAULT_AGENT if args.yes else choose_agent())
-    uv_executable = ensure_uv(assume_yes=args.yes, confirm_install=confirm)
+    uv_executable = ensure_uv(
+        assume_yes=args.yes,
+        confirm_install=confirm,
+        verbose=verbose,
+    )
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        transient=True,
-        console=console,
-    ) as progress:
-        progress.add_task(f"Creating workspace at {project_dir}", total=None)
+    with step(f"Creating workspace at {project_dir}", verbose=verbose):
         download_scaffold(
             project_dir,
             template_ref=args.template_ref,
@@ -94,18 +97,23 @@ def run(args: argparse.Namespace) -> None:
     console.print(f"[dim]Project package name:[/dim] {package_name}")
 
     if args.skip_uv_sync:
-        console.print(f"[yellow]Skipped[/yellow] dependency sync. Run `cd {project_dir} && uv sync` later.")
+        console.print(
+            f"[yellow]Skipped[/yellow] dependency sync. Run `cd {project_dir} && uv sync` later."
+        )
     else:
-        console.print("\n[bold]Installing dependencies with uv sync[/bold]")
-        run_uv_sync(uv_executable, project_dir)
+        with step("Installing dependencies", verbose=verbose):
+            run_uv_sync(uv_executable, project_dir, verbose=verbose)
+        console.print("[green]Installed[/green] dependencies")
 
-    console.print(f"\n[bold]Initializing {agent}[/bold]")
-    initialize_agent(uv_executable, project_dir, agent)
+    with step(f"Initializing {agent}", verbose=verbose):
+        initialize_agent(uv_executable, project_dir, agent, verbose=verbose)
+    console.print(f"[green]Initialized[/green] {agent}")
 
     console.print("\n[bold]Installing dltHub AI toolkits[/bold]")
     for toolkit in TOOLKITS:
-        console.print(f"  [dim]Installing[/dim] {toolkit}")
-        install_toolkit(uv_executable, project_dir, toolkit)
+        with step(f"  Installing {toolkit}", verbose=verbose):
+            install_toolkit(uv_executable, project_dir, toolkit, verbose=verbose)
+        console.print(f"  [green]Installed[/green] {toolkit}")
 
     console.print()
     print_next_steps(project_dir)

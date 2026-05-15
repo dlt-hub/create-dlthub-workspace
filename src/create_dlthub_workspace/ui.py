@@ -2,16 +2,36 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm, Prompt
 from rich.text import Text
 
 from .config import AGENTS, DEFAULT_AGENT, TIPS, VERSION
 
 console = Console()
+
+
+@contextmanager
+def step(description: str, *, verbose: bool = False) -> Iterator[None]:
+    """Show a spinner during a subprocess step, or a plain header in verbose mode."""
+    if verbose:
+        console.print(f"[bold]{description}[/bold]")
+        yield
+        return
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+        console=console,
+    ) as progress:
+        progress.add_task(description, total=None)
+        yield
 
 ROWS = [
     [("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", "")],

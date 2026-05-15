@@ -19,6 +19,7 @@ class DltAiTests(unittest.TestCase):
             "/usr/local/bin/uv",
             project_dir,
             ["run", "dlthub", "ai", "init", "--agent", "claude"],
+            verbose=False,
         )
 
     @patch("create_dlthub_workspace.dlt_ai.run_uv_command")
@@ -31,6 +32,7 @@ class DltAiTests(unittest.TestCase):
             "/usr/local/bin/uv",
             project_dir,
             ["run", "dlthub", "ai", "toolkit", "data-exploration", "install"],
+            verbose=False,
         )
 
     @patch("create_dlthub_workspace.dlt_ai.install_toolkit")
@@ -40,4 +42,6 @@ class DltAiTests(unittest.TestCase):
         install_all_toolkits("/usr/local/bin/uv", project_dir)
 
         self.assertEqual(install_toolkit_mock.call_count, len(TOOLKITS))
-        install_toolkit_mock.assert_any_call("/usr/local/bin/uv", project_dir, TOOLKITS[0])
+        install_toolkit_mock.assert_any_call(
+            "/usr/local/bin/uv", project_dir, TOOLKITS[0], verbose=False
+        )
