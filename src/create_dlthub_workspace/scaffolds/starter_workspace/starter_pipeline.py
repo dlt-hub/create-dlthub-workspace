@@ -1,56 +1,49 @@
-"""GitHub commits ingestion pipeline.
+"""Open Brewery DB ingestion pipeline.
 
-Loads commits and contributors from the GitHub REST API into a warehouse
-destination. Uses a job decorator with a recurring trigger so Runtime
-runs it automatically every 5 minutes.
+Loads public brewery records from a no-auth REST API into a local warehouse.
+The example is intentionally small so a new workspace can run without secrets,
+API keys, or signups.
 """
 
 import dlt
-from dlt.sources.rest_api import rest_api_resources
-from dlt.sources.rest_api.typing import RESTAPIConfig
 from dlt.hub import run
 from dlt.hub.run import trigger
+from dlt.sources.rest_api import rest_api_resources
+from dlt.sources.rest_api.typing import RESTAPIConfig
 
 
-# if no argument is provided, `access_token` is read from `.dlt/secrets.toml`
 @dlt.source
-def github_rest_api_source(
-    owner: str = "dlt-hub",
-    repo: str = "dlt",
-    access_token: str = dlt.secrets.value,
+def brewery_rest_api_source(
+    country: str = "united_states",
+    per_page: int = 50,
 ):
-    """Define dlt resources from GitHub REST API endpoints."""
+    """Define dlt resources for the Open Brewery DB API."""
     config: RESTAPIConfig = {
         "client": {
-            "base_url": "https://api.github.com",
-            "auth": {"type": "bearer", "token": access_token},
-            "headers": {
-                "Accept": "application/vnd.github.v3+json",
-                "User-Agent": "dlt-github-rest",
+            "base_url": "https://api.openbrewerydb.org/v1",
+            "headers": {"User-Agent": "dlthub-starter-workspace"},
+            "paginator": {
+                "type": "page_number",
+                "base_page": 1,
+                "page_param": "page",
+                "total_path": None,
+                "stop_after_empty_page": True,
             },
-            "paginator": {"type": "header_link"},
         },
         "resource_defaults": {
             "endpoint": {
                 "params": {
-                    "per_page": 100,
+                    "per_page": per_page,
                 }
             },
             "write_disposition": "replace",
         },
         "resources": [
             {
-                "name": "commits",
+                "name": "breweries",
                 "endpoint": {
-                    "path": "/repos/{owner}/{repo}/commits",
-                    "params": {"owner": owner, "repo": repo},
-                },
-            },
-            {
-                "name": "contributors",
-                "endpoint": {
-                    "path": "/repos/{owner}/{repo}/contributors",
-                    "params": {"owner": owner, "repo": repo},
+                    "path": "/breweries",
+                    "params": {"by_country": country},
                 },
             },
         ],
@@ -62,19 +55,19 @@ def github_rest_api_source(
 @run.pipeline(
     "starter_pipeline",
     trigger=trigger.every("5m"),
-    expose={"tags": ["ingest"], "display_name": "GitHub commits ingest"},
+    expose={"tags": ["ingest"], "display_name": "Brewery data ingest"},
 )
-def load_commits():
-    """Load commits and contributors from the GitHub REST API."""
-    starter_pipeline = dlt.pipeline(
+def load_breweries():
+    """Load public brewery records into the local warehouse."""
+    pipeline = dlt.pipeline(
         pipeline_name="starter_pipeline",
         destination="warehouse",
-        dataset_name="github_data",
+        dataset_name="brewery_data",
         progress="log",
     )
-    load_info = starter_pipeline.run(github_rest_api_source().add_limit(10))
+    load_info = pipeline.run(brewery_rest_api_source().add_limit(2))
     print(load_info)
 
 
 if __name__ == "__main__":
-    load_commits()
+    load_breweries()

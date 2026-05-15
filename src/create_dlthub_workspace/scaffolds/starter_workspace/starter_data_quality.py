@@ -1,9 +1,4 @@
-"""GitHub data quality checks.
-
-Batch job that validates commits and contributors data after ingestion.
-Runs on an hourly schedule. The job fails if any check has failures,
-succeeds otherwise.
-"""
+"""Data quality checks for the starter brewery dataset."""
 
 import dlt
 from dlt.hub import run
@@ -12,52 +7,57 @@ from dlt.hub.run import trigger
 import dlthub.data_quality as dq
 
 
-commits_checks = [
-    dq.checks.is_not_null("sha"),
-    dq.checks.is_not_null("commit__author__name"),
-    dq.checks.is_not_null("commit__author__date"),
-    dq.checks.case("commit__comment_count >= 0"),
+named_brewery_checks = [
+    ("id__is_not_null", dq.checks.is_not_null("id")),
+    ("name__is_not_null", dq.checks.is_not_null("name")),
+    ("brewery_type__is_not_null", dq.checks.is_not_null("brewery_type")),
+    ("city__is_not_null", dq.checks.is_not_null("city")),
+    ("country__is_not_null", dq.checks.is_not_null("country")),
+    ("brewery_type__is_in", dq.checks.is_in(
+        "brewery_type",
+        [
+            "micro",
+            "nano",
+            "regional",
+            "brewpub",
+            "large",
+            "planning",
+            "bar",
+            "contract",
+            "proprietor",
+            "closed",
+            "taproom",
+            "beergarden",
+        ],
+    )),
 ]
 
-contributors_checks = [
-    dq.checks.is_not_null("login"),
-    dq.checks.is_not_null("id"),
-    dq.checks.is_in("type", ["User", "Bot"]),
-    dq.checks.case("contributions > 0"),
-]
+brewery_checks = [check for _, check in named_brewery_checks]
 
 
 @run.job(
     trigger=trigger.schedule("0 * * * *"),
-    expose={"display_name": "GitHub data quality"},
+    expose={"display_name": "Starter data quality"},
 )
 def run_dq_checks():
-    """Run data quality checks on GitHub data. Fails if any check has failures."""
-    starter_pipeline = dlt.pipeline(
+    """Run starter data quality checks. Fails if any check has failures."""
+    pipeline = dlt.pipeline(
         pipeline_name="starter_pipeline",
         destination="warehouse",
-        dataset_name="github_data",
+        dataset_name="brewery_data",
     )
 
-    dataset = starter_pipeline.dataset()
-    suite = dq.CheckSuite(
-        dataset,
-        checks={
-            "commits": commits_checks,
-            "contributors": contributors_checks,
-        },
-    )
+    dataset = pipeline.dataset()
+    suite = dq.CheckSuite(dataset, checks={"breweries": brewery_checks})
 
     all_passed = True
-    for table_name, check_list in [("commits", commits_checks), ("contributors", contributors_checks)]:
-        for check in check_list:
-            check_name = check.name
-            failures = suite.get_failures(table_name, check_name).arrow()
-            if len(failures) > 0:
-                print(f"FAIL: {table_name}.{check_name} -- {len(failures)} failures")
-                all_passed = False
-            else:
-                print(f"PASS: {table_name}.{check_name}")
+    for check_name, _check in named_brewery_checks:
+        failures = suite.get_failures("breweries", check_name).arrow()
+        if len(failures) > 0:
+            print(f"FAIL: breweries.{check_name} -- {len(failures)} failures")
+            all_passed = False
+        else:
+            print(f"PASS: breweries.{check_name}")
 
     if not all_passed:
         raise RuntimeError("Data quality checks failed -- see output above for details")
