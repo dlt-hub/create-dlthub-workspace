@@ -1,0 +1,15 @@
+[project]
+name = "dlthub-starter-workspace"
+version = "0.1.0"
+description = "Starter dltHub workspace with runnable examples"
+requires-python = ">=3.12"
+dependencies = [
+    "dlt[motherduck,hub]==1.27.0a0",
+    "duckdb<1.4.3",
+    "altair>=6.0.0",
+]
+
+[tool.uv]
+prerelease = "allow"
+
+[tool.uv.sources]
