@@ -46,6 +46,6 @@ def install_toolkit(
     run_uv_command(
         uv_executable,
         project_dir,
-        ["run", "dlthub", "ai", "toolkit", toolkit, "install"],
+        ["run", "dlthub", "ai", "toolkit", "install", toolkit],
         verbose=verbose,
     )

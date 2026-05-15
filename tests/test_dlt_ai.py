@@ -31,7 +31,7 @@ class DltAiTests(unittest.TestCase):
         run_uv_command.assert_called_once_with(
             "/usr/local/bin/uv",
             project_dir,
-            ["run", "dlthub", "ai", "toolkit", "data-exploration", "install"],
+            ["run", "dlthub", "ai", "toolkit", "install", "data-exploration"],
             verbose=False,
         )
 
