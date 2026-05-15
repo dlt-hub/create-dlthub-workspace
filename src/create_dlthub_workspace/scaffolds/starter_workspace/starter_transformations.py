@@ -1,90 +1,77 @@
-import marimo
+"""Brewery starter transformations.
 
-__generated_with = "0.19.2"
-app = marimo.App(width="full")
+Reads raw brewery data and computes cleaned and aggregated tables using Ibis.
+Triggered automatically after ingestion succeeds.
+"""
 
-with app.setup:
-    import dlt
-    import marimo as mo
+import typing
+
+import dlt
+from dlt.hub import run
+from ibis import ir
+
+from starter_pipeline import load_breweries, starter_pipe
 
 
-@app.cell(hide_code=True)
-def _():
-    mo.md(
-        r"""
-        # Transform Brewery Data
-
-        This example starts from public brewery records and creates a cleaner,
-        analytics-friendly view of the data.
-        """
+@dlt.hub.transformation(write_disposition="replace")
+def breweries_clean(dataset: dlt.Dataset) -> typing.Iterator[ir.Table]:
+    """Select a clean column set with a derived has_coordinates flag."""
+    breweries = dataset.table("breweries").to_ibis()
+    yield breweries.select(
+        "id",
+        "name",
+        "brewery_type",
+        "city",
+        "state_province",
+        "country",
+        "latitude",
+        "longitude",
+    ).mutate(
+        has_coordinates=breweries.latitude.notnull()
+        & breweries.longitude.notnull()
     )
-    return
 
 
-@app.cell
-def _():
-    from starter_pipeline import brewery_rest_api_source
-
-    pipeline = dlt.pipeline(
-        pipeline_name="starter_pipeline",
-        destination="warehouse",
-        dataset_name="brewery_data",
+@dlt.hub.transformation(write_disposition="replace")
+def breweries_by_state(dataset: dlt.Dataset) -> typing.Iterator[ir.Table]:
+    """Count breweries per state/province with coordinate availability."""
+    breweries = dataset.table("breweries").to_ibis()
+    yield breweries.group_by("state_province").aggregate(
+        brewery_count=breweries.id.count(),
+        with_coordinates=(
+            breweries.latitude.notnull() & breweries.longitude.notnull()
+        ).sum(),
     )
-    load_info = pipeline.run(brewery_rest_api_source())
-    load_info
-    return (pipeline,)
 
 
-@app.cell
-def _(pipeline):
-    dataset = pipeline.dataset()
-    dataset.tables
-    return (dataset,)
+@dlt.source
+def brewery_metrics(raw_dataset: dlt.Dataset) -> list:
+    """Combine brewery transformations into a single source."""
+    return [
+        breweries_clean(raw_dataset),
+        breweries_by_state(raw_dataset),
+    ]
 
 
-@app.cell
-def _(dataset):
-    breweries = dataset.breweries.df()
-    breweries.head(10)
-    return (breweries,)
+starter_transform_pipe = dlt.pipeline(
+    pipeline_name="starter_transform",
+    destination="warehouse",
+    dataset_name="brewery_transforms",
+)
 
 
-@app.cell
-def _(breweries):
-    clean_breweries = breweries[
-        [
-            "id",
-            "name",
-            "brewery_type",
-            "city",
-            "state_province",
-            "country",
-            "latitude",
-            "longitude",
-            "website_url",
-        ]
-    ].copy()
-    clean_breweries["has_coordinates"] = (
-        clean_breweries["latitude"].notna() & clean_breweries["longitude"].notna()
+@run.pipeline(
+    starter_transform_pipe,
+    trigger=load_breweries.success,
+    expose={"display_name": "Brewery transformations"},
+)
+def transform_breweries():
+    """Transform raw brewery data into clean tables and metrics."""
+    load_info = starter_transform_pipe.run(
+        brewery_metrics(starter_pipe.dataset())
     )
-    clean_breweries.head(10)
-    return (clean_breweries,)
-
-
-@app.cell
-def _(clean_breweries):
-    summary_by_type = (
-        clean_breweries.groupby("brewery_type", dropna=False)
-        .agg(
-            breweries=("id", "count"),
-            with_coordinates=("has_coordinates", "sum"),
-        )
-        .reset_index()
-        .sort_values("breweries", ascending=False)
-    )
-    summary_by_type
-    return (summary_by_type,)
+    print(load_info)
 
 
 if __name__ == "__main__":
-    app.run()
+    transform_breweries()

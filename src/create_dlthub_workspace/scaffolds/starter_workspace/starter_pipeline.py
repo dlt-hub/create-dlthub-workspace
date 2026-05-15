@@ -52,20 +52,22 @@ def brewery_rest_api_source(
     yield from rest_api_resources(config)
 
 
+starter_pipe = dlt.pipeline(
+    pipeline_name="starter_pipeline",
+    destination="warehouse",
+    dataset_name="brewery_data",
+    progress="log",
+)
+
+
 @run.pipeline(
-    "starter_pipeline",
-    trigger=trigger.every("5m"),
+    starter_pipe,
     expose={"tags": ["ingest"], "display_name": "Brewery data ingest"},
 )
 def load_breweries():
     """Load public brewery records into the local warehouse."""
-    pipeline = dlt.pipeline(
-        pipeline_name="starter_pipeline",
-        destination="warehouse",
-        dataset_name="brewery_data",
-        progress="log",
-    )
-    load_info = pipeline.run(brewery_rest_api_source())
+    # Cap to a handful of pages so starter runs finish quickly.
+    load_info = starter_pipe.run(brewery_rest_api_source().add_limit(10))
     print(load_info)
 
 
