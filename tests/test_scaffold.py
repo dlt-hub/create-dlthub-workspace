@@ -1,69 +1,64 @@
 from __future__ import annotations
 
-import io
-import tarfile
 import tempfile
 import unittest
 from pathlib import Path
 
 from create_dlthub_workspace.errors import ScaffoldError
-from create_dlthub_workspace.scaffold import extract_template_from_tarball
+from create_dlthub_workspace.scaffold import SCAFFOLDS_DIR, copy_scaffold
 
 
-def make_tarball(files: dict[str, bytes]) -> bytes:
-    buffer = io.BytesIO()
-    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
-        for name, content in files.items():
-            info = tarfile.TarInfo(name)
-            info.size = len(content)
-            tar.addfile(info, io.BytesIO(content))
-    return buffer.getvalue()
-
-
-def make_symlink_tarball(name: str, target: str) -> bytes:
-    buffer = io.BytesIO()
-    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
-        info = tarfile.TarInfo(name)
-        info.type = tarfile.SYMTYPE
-        info.linkname = target
-        tar.addfile(info)
-    return buffer.getvalue()
-
-
-class ScaffoldExtractionTests(unittest.TestCase):
-    def test_extracts_template_contents_into_project_root(self) -> None:
-        data = make_tarball(
-            {
-                "runtime-starter-pack-main/github_ingest_workspace/pyproject.toml": b"[project]\n",
-                "runtime-starter-pack-main/other_template/ignore.txt": b"nope\n",
-            }
-        )
-
+class CopyScaffoldTests(unittest.TestCase):
+    def test_copies_bundled_minimal_scaffold(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            project_dir = Path(tmpdir) / "project"
+            project_dir = Path(tmpdir) / "new_workspace"
+            copy_scaffold(project_dir, scaffold="minimal_workspace")
+
+            self.assertTrue((project_dir / "pyproject.toml").exists())
+            self.assertTrue((project_dir / "pipeline.py").exists())
+            self.assertTrue((project_dir / "__deployment__.py").exists())
+            self.assertTrue((project_dir / ".dlt" / "config.toml").exists())
+
+    def test_copies_bundled_starter_scaffold(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir) / "new_workspace"
+            copy_scaffold(project_dir, scaffold="starter_workspace")
+
+            self.assertTrue((project_dir / "pyproject.toml").exists())
+            self.assertTrue((project_dir / "starter_pipeline.py").exists())
+            self.assertTrue((project_dir / "notebooks").is_dir())
+
+    def test_skips_runtime_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir) / "new_workspace"
+            copy_scaffold(project_dir, scaffold="starter_workspace")
+
+            # Verify the dev-time artifacts are not propagated to the user's workspace.
+            self.assertFalse((project_dir / "__pycache__").exists())
+            self.assertFalse((project_dir / ".venv").exists())
+            if (project_dir / ".dlt").exists():
+                self.assertFalse((project_dir / ".dlt" / "data").exists())
+                self.assertFalse((project_dir / ".dlt" / "state").exists())
+
+    def test_raises_for_unknown_scaffold(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with self.assertRaises(ScaffoldError):
+                copy_scaffold(Path(tmpdir) / "p", scaffold="does-not-exist")
+
+    def test_raises_when_target_is_not_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir) / "occupied"
             project_dir.mkdir()
+            (project_dir / "existing.txt").write_text("hi", encoding="utf-8")
 
-            extract_template_from_tarball(data, project_dir, template_dir="github_ingest_workspace")
-
-            self.assertEqual((project_dir / "pyproject.toml").read_bytes(), b"[project]\n")
-            self.assertFalse((project_dir / "ignore.txt").exists())
-
-    def test_raises_when_template_is_missing(self) -> None:
-        data = make_tarball({"runtime-starter-pack-main/other/file.txt": b"hello\n"})
-
-        with tempfile.TemporaryDirectory() as tmpdir:
             with self.assertRaises(ScaffoldError):
-                extract_template_from_tarball(data, Path(tmpdir), template_dir="github_ingest_workspace")
+                copy_scaffold(project_dir, scaffold="minimal_workspace")
 
-    def test_rejects_links_in_template(self) -> None:
-        data = make_symlink_tarball(
-            "runtime-starter-pack-main/github_ingest_workspace/link",
-            "/tmp/outside",
-        )
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with self.assertRaises(ScaffoldError):
-                extract_template_from_tarball(data, Path(tmpdir), template_dir="github_ingest_workspace")
+class ScaffoldsDirTests(unittest.TestCase):
+    def test_bundled_scaffolds_exist(self) -> None:
+        self.assertTrue((SCAFFOLDS_DIR / "starter_workspace").is_dir())
+        self.assertTrue((SCAFFOLDS_DIR / "minimal_workspace").is_dir())
 
 
 if __name__ == "__main__":

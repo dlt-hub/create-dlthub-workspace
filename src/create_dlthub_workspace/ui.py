@@ -6,13 +6,17 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+import beaupy
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.prompt import Confirm, Prompt
 from rich.text import Text
 
-from .config import AGENTS, DEFAULT_AGENT, TIPS, VERSION
+from .config import AGENTS, DEFAULT_AGENT, DEFAULT_SCAFFOLD, SCAFFOLDS, TIPS, VERSION
+
+CURSOR = "❯"
+CURSOR_STYLE = "#59C1D5"
+TICK_CHAR = "●"
 
 console = Console()
 
@@ -67,18 +71,56 @@ def print_banner() -> None:
     )
 
 
-def choose_agent(default: str = DEFAULT_AGENT) -> str:
-    """Ask the user which AI workbench to initialize."""
-    return Prompt.ask(
-        "Choose your AI workbench",
-        choices=list(AGENTS),
-        default=default,
+def choose_scaffold(default: str = DEFAULT_SCAFFOLD) -> str:
+    """Arrow-key select for the bundled scaffold."""
+    keys = [key for key, _, _ in SCAFFOLDS]
+    options = [
+        f"[bold]{label}[/bold]   [dim]{description}[/dim]"
+        for _, label, description in SCAFFOLDS
+    ]
+    default_index = keys.index(default) if default in keys else 0
+
+    console.print(
+        "\n[bold]Choose a scaffold[/bold] [dim](↑/↓ to move, enter to confirm)[/dim]"
+    )
+    index = beaupy.select(
+        options,
+        cursor=CURSOR,
+        cursor_style=CURSOR_STYLE,
+        cursor_index=default_index,
+        return_index=True,
+    )
+    return keys[index]
+
+
+def choose_agents(default: str = DEFAULT_AGENT) -> list[str]:
+    """Arrow-key multi-select for AI workbenches."""
+    agents = list(AGENTS)
+    default_index = agents.index(default) if default in agents else 0
+
+    console.print(
+        "\n[bold]Choose AI workbench(es)[/bold] "
+        "[dim](space to toggle, enter to confirm)[/dim]"
+    )
+    return beaupy.select_multiple(
+        agents,
+        cursor_style=CURSOR_STYLE,
+        tick_character=TICK_CHAR,
+        tick_style=CURSOR_STYLE,
+        ticked_indices=[default_index],
     )
 
 
 def confirm(message: str, *, default: bool = True) -> bool:
-    """Ask for yes/no confirmation."""
-    return Confirm.ask(message, default=default)
+    """Arrow-key Yes/No confirmation."""
+    console.print(f"\n[bold]{message}[/bold]")
+    choice = beaupy.select(
+        ["Yes", "No"],
+        cursor=CURSOR,
+        cursor_style=CURSOR_STYLE,
+        cursor_index=0 if default else 1,
+    )
+    return choice == "Yes"
 
 
 def print_next_steps(project_dir: Path) -> None:

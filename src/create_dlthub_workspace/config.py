@@ -2,9 +2,19 @@
 
 VERSION = "0.1.0"
 
-REPO_URL = "https://github.com/dlt-hub/runtime-starter-pack"
-DEFAULT_TEMPLATE_REF = "main"
-DEFAULT_TEMPLATE_DIR = "github_ingest_workspace"
+SCAFFOLDS = (
+    (
+        "starter_workspace",
+        "Starter",
+        "Ingestion, transformations, data quality, and notebooks.",
+    ),
+    (
+        "minimal_workspace",
+        "Minimal",
+        "Bare workspace with a single placeholder pipeline.",
+    ),
+)
+DEFAULT_SCAFFOLD = SCAFFOLDS[0][0]
 
 AGENTS = ("claude", "cursor", "codex")
 DEFAULT_AGENT = "claude"
@@ -22,8 +32,3 @@ TIPS = (
     ("/explore-data", "query and explore loaded tables"),
     ("/setup-runtime", "deploy your pipeline to dltHub"),
 )
-
-
-def tarball_url(template_ref: str = DEFAULT_TEMPLATE_REF) -> str:
-    """Return the GitHub tarball URL for a starter-pack ref."""
-    return f"{REPO_URL}/archive/{template_ref}.tar.gz"
