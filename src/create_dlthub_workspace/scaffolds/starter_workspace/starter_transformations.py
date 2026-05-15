@@ -30,7 +30,7 @@ def _():
         destination="warehouse",
         dataset_name="brewery_data",
     )
-    load_info = pipeline.run(brewery_rest_api_source().add_limit(2))
+    load_info = pipeline.run(brewery_rest_api_source())
     load_info
     return (pipeline,)
 

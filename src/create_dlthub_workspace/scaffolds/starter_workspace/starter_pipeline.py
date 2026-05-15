@@ -65,7 +65,7 @@ def load_breweries():
         dataset_name="brewery_data",
         progress="log",
     )
-    load_info = pipeline.run(brewery_rest_api_source().add_limit(2))
+    load_info = pipeline.run(brewery_rest_api_source())
     print(load_info)
 
 
