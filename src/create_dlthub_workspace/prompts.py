@@ -12,9 +12,15 @@ CURSOR_STYLE = "#59C1D5"
 TICK_CHAR = "●"
 
 
+def _echo_selection(value: str) -> None:
+    """Persist the user's choice after beaupy clears its widget."""
+    console.print(f"  [{CURSOR_STYLE}]{TICK_CHAR}[/{CURSOR_STYLE}] [bold]{value}[/bold]")
+
+
 def choose_scaffold(default: str = DEFAULT_SCAFFOLD) -> str:
     """Arrow-key select for the bundled scaffold."""
     keys = [key for key, _, _ in SCAFFOLDS]
+    labels = [label for _, label, _ in SCAFFOLDS]
     options = [
         f"[bold]{label}[/bold]   [dim]{description}[/dim]"
         for _, label, description in SCAFFOLDS
@@ -31,6 +37,7 @@ def choose_scaffold(default: str = DEFAULT_SCAFFOLD) -> str:
         cursor_index=default_index,
         return_index=True,
     )
+    _echo_selection(labels[index])
     return keys[index]
 
 
@@ -43,13 +50,15 @@ def choose_agents(default: str = DEFAULT_AGENT) -> list[str]:
         "\n[bold]Choose AI workbench(es)[/bold] "
         "[dim](space to toggle, enter to confirm)[/dim]"
     )
-    return beaupy.select_multiple(
+    selected = beaupy.select_multiple(
         agents,
         cursor_style=CURSOR_STYLE,
         tick_character=TICK_CHAR,
         tick_style=CURSOR_STYLE,
         ticked_indices=[default_index],
     )
+    _echo_selection(", ".join(selected) if selected else "(none)")
+    return selected
 
 
 def confirm(message: str, *, default: bool = True) -> bool:
@@ -61,4 +70,5 @@ def confirm(message: str, *, default: bool = True) -> bool:
         cursor_style=CURSOR_STYLE,
         cursor_index=0 if default else 1,
     )
+    _echo_selection(choice)
     return choice == "Yes"
