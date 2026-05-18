@@ -75,6 +75,7 @@ def print_banner() -> None:
 
 
 def print_next_steps(project_dir: Path) -> None:
+    """Post-setup tips panel. Used after a fully successful run."""
     body = Text()
     body.append("  cd ", style="dim")
     body.append(str(project_dir), style="bold #59C1D5")
@@ -94,6 +95,39 @@ def print_next_steps(project_dir: Path) -> None:
         Panel(
             body,
             title="You're all set",
+            title_align="left",
+            border_style="#C6D300",
+            padding=(1, 2),
+        )
+    )
+
+
+def print_resume_steps(project_dir: Path, *, uv_installed: bool) -> None:
+    """Remaining setup commands. Used when execution stops before AI work."""
+    steps: list[tuple[str, str]] = []
+    if not uv_installed:
+        steps.append(("Install uv:", "curl -LsSf https://astral.sh/uv/install.sh | sh"))
+    steps.append(("Install workspace dependencies:", "uv sync"))
+    steps.append(("Initialize an AI workbench:", "uv run dlthub ai init --agent claude"))
+
+    body = Text()
+    body.append("  cd ", style="dim")
+    body.append(str(project_dir), style="bold #59C1D5")
+    body.append("\n\n")
+    body.append("Finish setup\n\n", style="bold #C6D300")
+    for index, (label, command) in enumerate(steps, start=1):
+        body.append(f"  {index}. {label}\n", style="dim")
+        body.append(f"     {command}\n\n", style="bold #59C1D5")
+    body.append("  Docs: ", style="dim")
+    body.append(
+        "github.com/dlt-hub/dlthub-ai-workbench",
+        style="underline #59C1D5 link https://github.com/dlt-hub/dlthub-ai-workbench/blob/master/README.md",
+    )
+
+    console.print(
+        Panel(
+            body,
+            title="Almost there",
             title_align="left",
             border_style="#C6D300",
             padding=(1, 2),

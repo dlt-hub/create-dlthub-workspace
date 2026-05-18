@@ -8,10 +8,10 @@ import sys
 from .config import AGENTS, DEFAULT_AGENT, DEFAULT_SCAFFOLD, SCAFFOLDS, TOOLKITS
 from .dlt_ai import initialize_agent, install_toolkit
 from .errors import WorkspaceError
-from .plan import WorkspacePlan, build_plan
+from .plan import WorkspacePlan, WorkspaceStage, build_plan
 from .project_metadata import apply_workspace_name
 from .scaffold import copy_scaffold
-from .display import console, print_banner, print_next_steps, step
+from .display import console, print_banner, print_next_steps, print_resume_steps, step
 from .uv import execute_uv_install, run_uv_sync
 
 
@@ -50,7 +50,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--skip-uv-sync",
         action="store_true",
-        help="Create the workspace without running `uv sync`.",
+        help="Stop after installing uv. Skips `uv sync` and all downstream AI setup.",
     )
     return parser
 
@@ -81,27 +81,31 @@ def run(args: argparse.Namespace) -> None:
 def execute_plan(plan: WorkspacePlan) -> None:
     verbose = plan.verbose
 
+    with step(f"Creating workspace at {plan.project_dir}", verbose=verbose):
+        copy_scaffold(plan.project_dir, scaffold=plan.scaffold)
+        package_name = apply_workspace_name(plan.project_dir, plan.project_dir.name)
+    console.print(f"[green]Created[/green] {plan.project_dir}")
+    console.print(f"[dim]Project package name:[/dim] {package_name}")
+
+    if plan.stage is WorkspaceStage.SCAFFOLD_ONLY:
+        console.print("\n[yellow]Skipped[/yellow] uv install and dependency sync.\n")
+        print_resume_steps(plan.project_dir, uv_installed=False)
+        return
+
     if plan.install_uv:
         uv_executable = execute_uv_install(verbose=verbose)
     else:
         assert plan.uv_executable is not None
         uv_executable = plan.uv_executable
 
-    with step(f"Creating workspace at {plan.project_dir}", verbose=verbose):
-        copy_scaffold(plan.project_dir, scaffold=plan.scaffold)
-        package_name = apply_workspace_name(plan.project_dir, plan.project_dir.name)
+    if plan.stage is WorkspaceStage.THROUGH_UV_INSTALL:
+        console.print("\n[yellow]Skipped[/yellow] dependency sync.\n")
+        print_resume_steps(plan.project_dir, uv_installed=True)
+        return
 
-    console.print(f"[green]Created[/green] {plan.project_dir}")
-    console.print(f"[dim]Project package name:[/dim] {package_name}")
-
-    if plan.skip_uv_sync:
-        console.print(
-            f"[yellow]Skipped[/yellow] dependency sync. Run `cd {plan.project_dir} && uv sync` later."
-        )
-    else:
-        with step("Installing dependencies", verbose=verbose):
-            run_uv_sync(uv_executable, plan.project_dir, verbose=verbose)
-        console.print("[green]Installed[/green] dependencies")
+    with step("Installing dependencies", verbose=verbose):
+        run_uv_sync(uv_executable, plan.project_dir, verbose=verbose)
+    console.print("[green]Installed[/green] dependencies")
 
     for agent in plan.agents:
         with step(f"Initializing {agent}", verbose=verbose):
