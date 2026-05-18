@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 from .errors import ScaffoldError
 
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ModuleNotFoundError:  # pragma: no cover - exercised on Python 3.10.
+else:
     import tomli as tomllib
 
 
