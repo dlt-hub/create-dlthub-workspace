@@ -7,9 +7,15 @@ on:
       - main
 
 jobs:
-  ci:
-    name: Package checks
-    runs-on: ubuntu-latest
+  # POSIX runners: Ubuntu + macOS. GNU make is available, so `make ci` runs
+  # the full chain (compile, lint, unit tests, e2e, check-ai, build).
+  posix:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - name: Checkout
@@ -24,6 +30,51 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev --frozen
 
-      - name: Run CI checks
-        run: make ci
+      - name: Lint + type-check
+        run: make lint-ci
 
+      - name: Compile
+        run: make compile
+
+      - name: Unit tests
+        run: make test
+
+      - name: Integration tests
+        run: make test-integration
+
+      - name: Build wheel
+        run: make build
+
+  # Windows runner: GNU make isn't standard on windows-latest. Invoke each
+  # check directly via uv so the workflow stays portable.
+  windows:
+    name: windows-latest
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --frozen
+
+      - name: Lint + type-check
+        run: |
+          uv run ruff format --check src tests tests_integration scripts
+          uv run ruff check src tests tests_integration scripts
+          uv run mypy src tests tests_integration scripts
+
+      - name: Unit tests
+        run: uv run python -m unittest discover -s tests -t .
+
+      - name: Integration tests
+        run: uv run python -m unittest discover -s tests_integration -t .
+
+      - name: Build wheel
+        run: uv build

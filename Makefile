@@ -1,10 +1,10 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help dev test compile build ci workspace lint lint-fix format format-check fl lint-ci generate-ai check-ai
+.PHONY: help dev test test-integration compile build ci workspace lint lint-fix format format-check fl lint-ci generate-ai check-ai
 
 PYTHONPYCACHEPREFIX ?= /tmp/create-dlthub-pyc
 PACKAGE_MODULES := $(wildcard src/create_dlthub_workspace/*.py)
-PYTHON_SOURCES := src tests scripts
+PYTHON_SOURCES := src tests tests_integration scripts
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -44,8 +44,11 @@ lint-ci: format-check lint ## CI lint workflow (format-check then lint)
 # Testing and build
 #
 
-test: ## Run unit tests
-	uv run python -m unittest discover -s tests
+test: ## Run unit tests (fast)
+	uv run python -m unittest discover -s tests -t .
+
+test-integration: ## Run e2e integration tests (slow; invokes real CLI + uv sync)
+	uv run python -m unittest discover -s tests_integration -t .
 
 compile: ## Byte-compile package and tests
 	PYTHONPYCACHEPREFIX=$(PYTHONPYCACHEPREFIX) uv run python -m compileall $(PACKAGE_MODULES) tests
@@ -61,7 +64,7 @@ workspace: ## Create a test workspace under examples/ (pre-deletes existing)
 	rm -rf -- "examples/$(TEST_WORKSPACE_NAME)"
 	uv run create-dlthub-workspace "examples/$(TEST_WORKSPACE_NAME)"
 
-ci: compile lint-ci test check-ai build ## Run all CI checks locally
+ci: compile lint-ci test test-integration check-ai build ## Run all CI checks locally
 
 #
 # Bundled AI workbench refresh

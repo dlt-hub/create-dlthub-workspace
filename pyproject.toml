@@ -45,11 +45,16 @@ warn_return_any = true
 namespace_packages = true
 warn_unused_ignores = true
 show_error_codes = true
-files = ["src", "tests", "scripts"]
+files = ["src", "tests", "tests_integration", "scripts"]
 exclude = ["src/create_dlthub_workspace/scaffolds"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"
+disallow_untyped_defs = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "tests_integration.*"
 disallow_untyped_defs = false
 warn_return_any = false
 
