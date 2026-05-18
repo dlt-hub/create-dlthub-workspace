@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from .config import AGENTS, DEFAULT_AGENT, DEFAULT_SCAFFOLD, SCAFFOLDS, TOOLKITS
+from .config import AGENTS, RECOMMENDED, SCAFFOLDS, TOOLKITS
 from .dlt_ai import initialize_agent, install_toolkit
 from .errors import WorkspaceError
 from .plan import WorkspacePlan, WorkspaceStage, build_plan
@@ -24,7 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--scaffold",
         choices=[key for key, _, _ in SCAFFOLDS],
-        help=f"Bundled scaffold to use. Defaults to {DEFAULT_SCAFFOLD!r} in non-interactive mode.",
+        help=f"Bundled scaffold to use. Defaults to the recommended {RECOMMENDED.scaffold!r} in non-interactive mode.",
     )
     parser.add_argument(
         "--agent",
@@ -32,14 +32,14 @@ def build_parser() -> argparse.ArgumentParser:
         choices=AGENTS,
         help=(
             "AI workbench to initialize. Pass multiple times to initialize several. "
-            f"Defaults to {DEFAULT_AGENT!r} in non-interactive mode."
+            f"Defaults to the recommended {RECOMMENDED.agent!r} in non-interactive mode."
         ),
     )
     parser.add_argument(
         "--yes",
         "-y",
         action="store_true",
-        help="Accept defaults and approve required setup prompts.",
+        help="Run the recommended path (starter scaffold, install uv, uv sync, claude).",
     )
     parser.add_argument(
         "--verbose",
@@ -107,12 +107,12 @@ def execute_plan(plan: WorkspacePlan) -> None:
         run_uv_sync(uv_executable, plan.project_dir, verbose=verbose)
     console.print("[green]Installed[/green] dependencies")
 
+    console.print("\n[bold]Initializing AI workbench[/bold]")
     for agent in plan.agents:
-        with step(f"Initializing {agent}", verbose=verbose):
+        with step(f"  Initializing {agent}", verbose=verbose):
             initialize_agent(uv_executable, plan.project_dir, agent, verbose=verbose)
-        console.print(f"[green]Initialized[/green] {agent}")
+        console.print(f"  [green]Initialized[/green] {agent}")
 
-    console.print("\n[bold]Installing dltHub AI toolkits[/bold]")
     for toolkit in TOOLKITS:
         with step(f"  Installing {toolkit}", verbose=verbose):
             install_toolkit(uv_executable, plan.project_dir, toolkit, verbose=verbose)
