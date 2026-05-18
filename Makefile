@@ -1,26 +1,64 @@
-.PHONY: dev test compile build ci workspace
+.DEFAULT_GOAL := help
+
+.PHONY: help dev test compile build ci workspace lint lint-fix format format-check fl lint-ci
 
 PYTHONPYCACHEPREFIX ?= /tmp/create-dlthub-pyc
 PACKAGE_MODULES := $(wildcard src/create_dlthub_workspace/*.py)
+PYTHON_SOURCES := src tests
 
-dev:
+help: ## Show this help message
+	@echo "Available targets:"
+	@grep -E '^[a-zA-Z0-9_.-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+#
+# Dev setup
+#
+
+dev: ## Install dev dependencies
 	uv sync --extra dev
 
-test:
+#
+# Linting and formatting
+#
+
+lint: ## Lint with ruff and type-check with mypy
+	uv run ruff check $(PYTHON_SOURCES)
+	uv run mypy $(PYTHON_SOURCES)
+
+lint-fix: ## Lint and autofix with ruff, type-check with mypy
+	uv run ruff check --fix $(PYTHON_SOURCES)
+	uv run mypy $(PYTHON_SOURCES)
+
+format: ## Format with ruff
+	uv run ruff format $(PYTHON_SOURCES)
+
+format-check: ## Check formatting with ruff (no writes)
+	uv run ruff format --check $(PYTHON_SOURCES)
+
+fl: format lint-fix ## Format and lint-fix in one shot
+
+lint-ci: format-check lint ## CI lint workflow (format-check then lint)
+
+#
+# Testing and build
+#
+
+test: ## Run unit tests
 	uv run python -m unittest discover -s tests
 
-compile:
+compile: ## Byte-compile package and tests
 	PYTHONPYCACHEPREFIX=$(PYTHONPYCACHEPREFIX) uv run python -m compileall $(PACKAGE_MODULES) tests
 
-build:
+build: ## Build the package wheel
 	uv build
 
 TEST_WORKSPACE_NAME ?= my-workspace
 
-workspace:
+workspace: ## Create a test workspace under examples/ (pre-deletes existing)
 	@case "$(TEST_WORKSPACE_NAME)" in */*|*..*|"") echo "invalid TEST_WORKSPACE_NAME: $(TEST_WORKSPACE_NAME)"; exit 1;; esac
 	@echo "Recreating examples/$(TEST_WORKSPACE_NAME)"
 	rm -rf -- "examples/$(TEST_WORKSPACE_NAME)"
 	uv run create-dlthub-workspace "examples/$(TEST_WORKSPACE_NAME)"
 
-ci: compile test build
+ci: compile lint-ci test build ## Run all CI checks locally
