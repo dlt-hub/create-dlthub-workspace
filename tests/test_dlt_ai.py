@@ -17,7 +17,7 @@ class DltAiTests(unittest.TestCase):
         run_uv_command.assert_called_once_with(
             "/usr/local/bin/uv",
             project_dir,
-            ["run", "dlthub", "ai", "init", "--agent", "claude"],
+            ["run", "dlthub", "ai", "init", "--agent", "claude", "--overwrite"],
             verbose=False,
         )
 
