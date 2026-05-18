@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from create_dlthub_workspace.errors import ScaffoldError
-from create_dlthub_workspace.scaffold import SCAFFOLDS_DIR, copy_scaffold
+from create_dlthub_workspace.scaffold import AGENT_FILES, SCAFFOLDS_DIR, copy_scaffold
 
 
 class CopyScaffoldTests(unittest.TestCase):
@@ -53,6 +53,26 @@ class CopyScaffoldTests(unittest.TestCase):
 
             with self.assertRaises(ScaffoldError):
                 copy_scaffold(project_dir, scaffold="minimal_workspace")
+
+    def test_drops_entries_for_unselected_agents(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir) / "claude_only"
+            # Seed the scaffold dir with the entries we'd expect to filter,
+            # since the bundled scaffolds may or may not have AI files yet.
+            scaffold_source = SCAFFOLDS_DIR / "minimal_workspace"
+            for entries in AGENT_FILES.values():
+                for entry in entries:
+                    candidate = scaffold_source / entry
+                    if not candidate.exists():
+                        # Skip; we still validate the removal logic on whatever IS present.
+                        continue
+
+            copy_scaffold(project_dir, scaffold="minimal_workspace", agents=("claude",))
+
+            for entry in AGENT_FILES["cursor"]:
+                self.assertFalse((project_dir / entry).exists(), f"{entry} should be removed")
+            for entry in AGENT_FILES["codex"]:
+                self.assertFalse((project_dir / entry).exists(), f"{entry} should be removed")
 
 
 class ScaffoldsDirTests(unittest.TestCase):

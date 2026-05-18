@@ -9,6 +9,16 @@ from .errors import ScaffoldError
 
 SCAFFOLDS_DIR = Path(__file__).parent / "scaffolds"
 
+# Top-level entries (relative to the scaffold root) that belong to each agent.
+# Used by copy_scaffold to drop entries for agents the user did not select.
+# `.agents/` is intentionally not listed here — codex reads it as its skill
+# source AND it holds the shared toolkit pool that all agents reference.
+AGENT_FILES: dict[str, tuple[str, ...]] = {
+    "claude": (".claude", ".claudeignore", ".mcp.json"),
+    "cursor": (".cursor",),
+    "codex": (".codex", "AGENTS.md"),
+}
+
 
 def validate_scaffold_target(project_dir: Path, *, scaffold: str) -> None:
     """Check that the scaffold exists and the target directory is writable. No writes."""
@@ -21,12 +31,28 @@ def validate_scaffold_target(project_dir: Path, *, scaffold: str) -> None:
         raise ScaffoldError(f"Target directory already exists and is not empty: {project_dir}")
 
 
-def copy_scaffold(project_dir: Path, *, scaffold: str) -> None:
-    """Copy the bundled scaffold ``scaffold`` into ``project_dir``."""
+def copy_scaffold(project_dir: Path, *, scaffold: str, agents: tuple[str, ...] = ()) -> None:
+    """Copy the bundled scaffold into ``project_dir``.
+
+    If ``agents`` is non-empty, top-level entries belonging to agents NOT in
+    the selection are removed after the copy. Pass ``()`` to keep everything
+    that's bundled (useful for tests that just want to verify the layout).
+    """
     validate_scaffold_target(project_dir, scaffold=scaffold)
     source = SCAFFOLDS_DIR / scaffold
     project_dir.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, project_dir, ignore=_ignore_runtime, dirs_exist_ok=True)
+
+    if agents:
+        for agent, entries in AGENT_FILES.items():
+            if agent in agents:
+                continue
+            for entry in entries:
+                target = project_dir / entry
+                if target.is_dir():
+                    shutil.rmtree(target)
+                elif target.exists():
+                    target.unlink()
 
 
 def _ignore_runtime(src: str, names: list[str]) -> set[str]:

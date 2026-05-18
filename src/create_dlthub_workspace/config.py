@@ -28,6 +28,14 @@ TOOLKITS = (
     "transformations",
 )
 
+# Pin for the dlt-hub/dlthub-ai-workbench repo used by `make generate-ai`.
+# - None  -> use the upstream default branch (today: master). Fine for dev.
+# - "<sha>" or "<branch>" -> pass through to `dlthub ai init --branch ...`.
+# Set this to a commit SHA before cutting a release so the bundled output
+# is reproducible. The workbench repo has no tags today, so SHA is the
+# only stable handle.
+WORKBENCH_REF: str | None = None
+
 
 @dataclass(frozen=True)
 class RecommendedPath:

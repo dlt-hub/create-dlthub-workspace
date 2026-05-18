@@ -1,10 +1,10 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help dev test compile build ci workspace lint lint-fix format format-check fl lint-ci
+.PHONY: help dev test compile build ci workspace lint lint-fix format format-check fl lint-ci generate-ai check-ai
 
 PYTHONPYCACHEPREFIX ?= /tmp/create-dlthub-pyc
 PACKAGE_MODULES := $(wildcard src/create_dlthub_workspace/*.py)
-PYTHON_SOURCES := src tests
+PYTHON_SOURCES := src tests scripts
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -61,4 +61,15 @@ workspace: ## Create a test workspace under examples/ (pre-deletes existing)
 	rm -rf -- "examples/$(TEST_WORKSPACE_NAME)"
 	uv run create-dlthub-workspace "examples/$(TEST_WORKSPACE_NAME)"
 
-ci: compile lint-ci test build ## Run all CI checks locally
+ci: compile lint-ci test check-ai build ## Run all CI checks locally
+
+#
+# Bundled AI workbench refresh
+#
+
+generate-ai: ## Refresh bundled AI workbench files in scaffolds (run after bumping WORKBENCH_REF)
+	uv run python scripts/generate_ai.py
+
+check-ai: ## CI guard: fail if generate-ai would produce a diff
+	$(MAKE) generate-ai
+	git diff --exit-code -- src/create_dlthub_workspace/scaffolds

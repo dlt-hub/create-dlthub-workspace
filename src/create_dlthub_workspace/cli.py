@@ -5,13 +5,12 @@ from __future__ import annotations
 import argparse
 import sys
 
-from .config import AGENTS, RECOMMENDED, SCAFFOLDS, TOOLKITS
-from .dlt_ai import initialize_agent, install_toolkit
+from .config import AGENTS, RECOMMENDED, SCAFFOLDS
+from .display import console, print_banner, print_next_steps, print_resume_steps, step
 from .errors import WorkspaceError
 from .plan import WorkspacePlan, WorkspaceStage, build_plan
 from .project_metadata import apply_workspace_name
 from .scaffold import copy_scaffold
-from .display import console, print_banner, print_next_steps, print_resume_steps, step
 from .uv import execute_uv_install, run_uv_sync
 
 
@@ -82,7 +81,7 @@ def execute_plan(plan: WorkspacePlan) -> None:
     verbose = plan.verbose
 
     with step(f"Creating workspace at {plan.project_dir}", verbose=verbose):
-        copy_scaffold(plan.project_dir, scaffold=plan.scaffold)
+        copy_scaffold(plan.project_dir, scaffold=plan.scaffold, agents=plan.agents)
         package_name = apply_workspace_name(plan.project_dir, plan.project_dir.name)
     console.print(f"[green]Created[/green] {plan.project_dir}")
     console.print(f"[dim]Project package name:[/dim] {package_name}")
@@ -106,17 +105,6 @@ def execute_plan(plan: WorkspacePlan) -> None:
     with step("Installing dependencies", verbose=verbose):
         run_uv_sync(uv_executable, plan.project_dir, verbose=verbose)
     console.print("[green]Installed[/green] dependencies into .venv")
-
-    console.print("\n[bold]Initializing AI workbench[/bold]")
-    for agent in plan.agents:
-        with step(f"  Initializing {agent}", verbose=verbose):
-            initialize_agent(uv_executable, plan.project_dir, agent, verbose=verbose)
-        console.print(f"  [green]Initialized[/green] {agent}")
-
-    for toolkit in TOOLKITS:
-        with step(f"  Installing {toolkit}", verbose=verbose):
-            install_toolkit(uv_executable, plan.project_dir, toolkit, verbose=verbose)
-        console.print(f"  [green]Installed[/green] {toolkit}")
 
     console.print()
     print_next_steps(plan.project_dir, scaffold=plan.scaffold)
