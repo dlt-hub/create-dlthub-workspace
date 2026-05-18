@@ -1,10 +1,15 @@
 # Contributing
 
-This project uses a standard `src/` layout and `uv` for local development.
+Thanks for helping improve `create-dlthub-workspace`. This project uses a
+standard Python `src/` layout, `uv` for environment management, `ruff` for
+formatting/linting, and `mypy` for type checking.
+
+The package itself supports Python 3.10+. Generated dltHub workspaces currently
+target Python 3.12+ because their scaffold dependencies do.
 
 ## Setup
 
-Install dependencies into a local virtual environment:
+Install development dependencies into a local virtual environment:
 
 ```bash
 make dev
@@ -16,37 +21,105 @@ Run the CLI from the checkout:
 uv run create-dlthub-workspace --help
 ```
 
-Create a workspace with defaults:
+Create a workspace with the recommended non-interactive path:
 
 ```bash
 uv run create-dlthub-workspace my-workspace --yes
 ```
 
-Choose an AI workbench explicitly:
+Create a workspace without running the generated workspace dependency sync:
 
 ```bash
+uv run create-dlthub-workspace my-workspace --yes --skip-uv-sync
+```
+
+Choose a scaffold or AI workbench explicitly:
+
+```bash
+uv run create-dlthub-workspace my-workspace --scaffold minimal_workspace
 uv run create-dlthub-workspace my-workspace --agent claude
-uv run create-dlthub-workspace my-workspace --agent cursor
-uv run create-dlthub-workspace my-workspace --agent codex
+uv run create-dlthub-workspace my-workspace --agent claude --agent codex
+```
+
+Create a disposable test workspace under `examples/`:
+
+```bash
+make workspace
+```
+
+The `workspace` target recreates `examples/my-workspace` by default. It
+pre-deletes that directory before running the CLI, so only use it for
+throwaway local workspaces. To choose a different workspace name:
+
+```bash
+make workspace TEST_WORKSPACE_NAME=starter-demo
 ```
 
 ## Tests
 
-Run the unit test suite:
+Run the fast unit test suite:
 
 ```bash
 make test
 ```
 
-Run a quick syntax check:
+Run the fast end-to-end coverage that avoids a real generated-workspace
+dependency sync:
+
+```bash
+uv run python -m unittest \
+  tests_integration.test_e2e_workspace.WorkspaceCreationFastTests \
+  tests_integration.test_e2e_workspace.InstalledEntryPointTests
+```
+
+Run all integration tests:
+
+```bash
+make test-integration
+```
+
+`make test-integration` includes a slow path that invokes the real CLI and runs
+`uv sync` in a generated workspace. It may require network access and can take
+noticeably longer than the unit suite.
+
+Run a quick bytecode compile check:
 
 ```bash
 make compile
 ```
 
+## Quality Checks
+
+Format code:
+
+```bash
+make format
+```
+
+Run linting and type checks:
+
+```bash
+make lint
+```
+
+Run the same format/lint/type-check sequence used by CI:
+
+```bash
+make lint-ci
+```
+
+Run the full local CI workflow:
+
+```bash
+make ci
+```
+
+`make ci` runs compile checks, linting, unit tests, integration tests, AI
+scaffold drift checks, and package build.
+
 ## Build
 
-Build the source distribution and wheel:
+Build the package:
 
 ```bash
 make build
@@ -54,7 +127,25 @@ make build
 
 The build artifacts are written to `dist/`.
 
-## Release Notes
+## AI Workbench Scaffolds
+
+The generated workspace includes vendored dltHub AI workbench files for Claude,
+Cursor, and Codex. These files are generated into each bundled scaffold, not
+downloaded during normal CLI execution.
+
+The source ref is pinned in `WORKBENCH_REF` in
+`src/create_dlthub_workspace/config.py`. To refresh the vendored AI files:
+
+1. Update `WORKBENCH_REF` to the desired `dlt-hub/dlthub-ai-workbench` commit.
+2. Run `make generate-ai`.
+3. Review the scaffold diff carefully.
+4. Run `make check-ai`.
+5. Commit the `WORKBENCH_REF` change and regenerated scaffold files together.
+
+`make check-ai` reruns generation and fails if the committed scaffolds drift
+from the pinned workbench ref.
+
+## Release Checklist
 
 Before publishing, verify:
 
@@ -63,7 +154,7 @@ uv run create-dlthub-workspace --help
 make ci
 ```
 
-The package exposes two console commands:
+The package exposes two equivalent console commands:
 
 ```text
 create-dlthub-workspace

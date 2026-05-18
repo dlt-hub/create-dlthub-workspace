@@ -70,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--skip-uv-sync",
         action="store_true",
-        help="Stop after installing uv. Skips `uv sync` and all downstream AI setup.",
+        help="Stop before dependency sync. The scaffold and selected AI workbench files are still created.",
     )
     return parser
 
