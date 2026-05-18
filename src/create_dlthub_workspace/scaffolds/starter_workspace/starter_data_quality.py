@@ -13,23 +13,26 @@ named_brewery_checks = [
     ("brewery_type__is_not_null", dq.checks.is_not_null("brewery_type")),
     ("city__is_not_null", dq.checks.is_not_null("city")),
     ("country__is_not_null", dq.checks.is_not_null("country")),
-    ("brewery_type__is_in", dq.checks.is_in(
-        "brewery_type",
-        [
-            "micro",
-            "nano",
-            "regional",
-            "brewpub",
-            "large",
-            "planning",
-            "bar",
-            "contract",
-            "proprietor",
-            "closed",
-            "taproom",
-            "beergarden",
-        ],
-    )),
+    (
+        "brewery_type__is_in",
+        dq.checks.is_in(
+            "brewery_type",
+            [
+                "micro",
+                "nano",
+                "regional",
+                "brewpub",
+                "large",
+                "planning",
+                "bar",
+                "contract",
+                "proprietor",
+                "closed",
+                "taproom",
+                "beergarden",
+            ],
+        ),
+    ),
 ]
 
 brewery_checks = [check for _, check in named_brewery_checks]

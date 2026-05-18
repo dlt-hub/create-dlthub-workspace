@@ -36,4 +36,3 @@ class ProjectMetadataTests(unittest.TestCase):
             apply_workspace_name(project_dir, "New Workspace")
 
             self.assertIn('name = "new-workspace"', pyproject.read_text(encoding="utf-8"))
-

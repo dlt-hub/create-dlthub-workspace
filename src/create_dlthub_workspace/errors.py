@@ -15,4 +15,3 @@ class UvError(WorkspaceError):
 
 class CommandError(WorkspaceError):
     """Raised when an external command fails."""
-

@@ -15,14 +15,10 @@ def validate_scaffold_target(project_dir: Path, *, scaffold: str) -> None:
     source = SCAFFOLDS_DIR / scaffold
     if not source.is_dir():
         available = ", ".join(sorted(p.name for p in SCAFFOLDS_DIR.iterdir() if p.is_dir()))
-        raise ScaffoldError(
-            f"Unknown scaffold {scaffold!r}. Available: {available or '(none)'}"
-        )
+        raise ScaffoldError(f"Unknown scaffold {scaffold!r}. Available: {available or '(none)'}")
 
     if project_dir.exists() and any(project_dir.iterdir()):
-        raise ScaffoldError(
-            f"Target directory already exists and is not empty: {project_dir}"
-        )
+        raise ScaffoldError(f"Target directory already exists and is not empty: {project_dir}")
 
 
 def copy_scaffold(project_dir: Path, *, scaffold: str) -> None:

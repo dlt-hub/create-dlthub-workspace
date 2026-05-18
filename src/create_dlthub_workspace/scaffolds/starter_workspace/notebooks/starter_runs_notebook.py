@@ -28,11 +28,7 @@ def _():
         destination="warehouse",
         dataset_name="brewery_data",
     )
-    loads = (
-        pipeline.dataset()
-        ._dlt_loads.df()
-        .sort_values("inserted_at", ascending=False)
-    )
+    loads = pipeline.dataset()._dlt_loads.df().sort_values("inserted_at", ascending=False)
     return (loads,)
 
 

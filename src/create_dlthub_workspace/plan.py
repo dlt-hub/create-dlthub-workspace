@@ -58,9 +58,7 @@ def build_plan(args: argparse.Namespace) -> WorkspacePlan:
             stage = WorkspaceStage.SCAFFOLD_ONLY
 
     if stage != WorkspaceStage.SCAFFOLD_ONLY:
-        if args.skip_uv_sync or (
-            not args.yes and not confirm("Install workspace dependencies with `uv sync`?")
-        ):
+        if args.skip_uv_sync or (not args.yes and not confirm("Install workspace dependencies with `uv sync`?")):
             stage = WorkspaceStage.THROUGH_UV_INSTALL
 
     if stage == WorkspaceStage.FULL:

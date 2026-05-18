@@ -21,15 +21,10 @@ def choose_scaffold(default: str = DEFAULT_SCAFFOLD) -> str:
     """Arrow-key select for the bundled scaffold."""
     keys = [key for key, _, _ in SCAFFOLDS]
     labels = [label for _, label, _ in SCAFFOLDS]
-    options = [
-        f"[bold]{label}[/bold]   [dim]{description}[/dim]"
-        for _, label, description in SCAFFOLDS
-    ]
+    options = [f"[bold]{label}[/bold]   [dim]{description}[/dim]" for _, label, description in SCAFFOLDS]
     default_index = keys.index(default) if default in keys else 0
 
-    console.print(
-        "\n[bold]Choose a scaffold[/bold] [dim](↑/↓ to move, enter to confirm)[/dim]"
-    )
+    console.print("\n[bold]Choose a scaffold[/bold] [dim](↑/↓ to move, enter to confirm)[/dim]")
     index = beaupy.select(
         options,
         cursor=CURSOR,
@@ -46,10 +41,7 @@ def choose_agents(default: str = DEFAULT_AGENT) -> list[str]:
     agents = list(AGENTS)
     default_index = agents.index(default) if default in agents else 0
 
-    console.print(
-        "\n[bold]Choose AI workbench(es)[/bold] "
-        "[dim](space to toggle, enter to confirm)[/dim]"
-    )
+    console.print("\n[bold]Choose AI workbench(es)[/bold] [dim](space to toggle, enter to confirm)[/dim]")
     selected = beaupy.select_multiple(
         agents,
         cursor_style=CURSOR_STYLE,

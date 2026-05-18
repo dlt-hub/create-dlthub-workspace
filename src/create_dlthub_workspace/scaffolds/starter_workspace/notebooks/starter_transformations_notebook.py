@@ -53,11 +53,7 @@ def _():
 
 @app.cell
 def _(dataset):
-    by_state = (
-        dataset.breweries_by_state.df()
-        .sort_values("brewery_count", ascending=False)
-        .head(15)
-    )
+    by_state = dataset.breweries_by_state.df().sort_values("brewery_count", ascending=False).head(15)
     by_state
     return (by_state,)
 

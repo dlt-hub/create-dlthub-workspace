@@ -44,9 +44,7 @@ def _():
             for name, _ in named_brewery_checks
         ]
     )
-    results["status"] = results["failures"].apply(
-        lambda n: "pass" if n == 0 else "fail"
-    )
+    results["status"] = results["failures"].apply(lambda n: "pass" if n == 0 else "fail")
     return (results,)
 
 
@@ -60,9 +58,7 @@ def _(results):
             y=alt.Y("check:N", sort="-x", title="Check"),
             color=alt.Color(
                 "status:N",
-                scale=alt.Scale(
-                    domain=["pass", "fail"], range=["#10b981", "#ef4444"]
-                ),
+                scale=alt.Scale(domain=["pass", "fail"], range=["#10b981", "#ef4444"]),
             ),
             tooltip=["check:N", "failures:Q", "status:N"],
         )

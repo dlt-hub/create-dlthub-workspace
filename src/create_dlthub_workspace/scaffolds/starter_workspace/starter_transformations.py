@@ -26,10 +26,7 @@ def breweries_clean(dataset: dlt.Dataset) -> typing.Iterator[ir.Table]:
         "country",
         "latitude",
         "longitude",
-    ).mutate(
-        has_coordinates=breweries.latitude.notnull()
-        & breweries.longitude.notnull()
-    )
+    ).mutate(has_coordinates=breweries.latitude.notnull() & breweries.longitude.notnull())
 
 
 @dlt.hub.transformation(write_disposition="replace")
@@ -38,9 +35,7 @@ def breweries_by_state(dataset: dlt.Dataset) -> typing.Iterator[ir.Table]:
     breweries = dataset.table("breweries").to_ibis()
     yield breweries.group_by("state_province").aggregate(
         brewery_count=breweries.id.count(),
-        with_coordinates=(
-            breweries.latitude.notnull() & breweries.longitude.notnull()
-        ).sum(),
+        with_coordinates=(breweries.latitude.notnull() & breweries.longitude.notnull()).sum(),
     )
 
 
@@ -67,9 +62,7 @@ starter_transform_pipe = dlt.pipeline(
 )
 def transform_breweries():
     """Transform raw brewery data into clean tables and metrics."""
-    load_info = starter_transform_pipe.run(
-        brewery_metrics(starter_pipe.dataset())
-    )
+    load_info = starter_transform_pipe.run(brewery_metrics(starter_pipe.dataset()))
     print(load_info)
 
 
