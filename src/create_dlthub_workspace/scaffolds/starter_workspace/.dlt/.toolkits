@@ -7,7 +7,7 @@ init:
   - rules
   - secrets
   - mcp
-  installed_at: '2026-05-18T13:41:35.328351+00:00'
+  installed_at: '1970-01-01T00:00:00+00:00'
   agent: codex
   files:
     .agents/skills/improve-skills/SKILL.md:
@@ -39,7 +39,7 @@ data-exploration:
   dependencies:
   - init
   workflow_entry_skill: explore-data
-  installed_at: '2026-05-18T13:41:36.298396+00:00'
+  installed_at: '1970-01-01T00:00:00+00:00'
   agent: codex
   files:
     .agents/skills/build-notebook/SKILL.md:
@@ -66,7 +66,7 @@ dlthub-runtime:
   dependencies:
   - init
   workflow_entry_skill: setup-runtime
-  installed_at: '2026-05-18T13:41:37.216389+00:00'
+  installed_at: '1970-01-01T00:00:00+00:00'
   agent: codex
   files:
     .agents/skills/debug-deployment/SKILL.md:
@@ -101,7 +101,7 @@ rest-api-pipeline:
   dependencies:
   - init
   workflow_entry_skill: find-source
-  installed_at: '2026-05-18T13:41:38.150493+00:00'
+  installed_at: '1970-01-01T00:00:00+00:00'
   agent: codex
   files:
     .agents/skills/adjust-endpoint/SKILL.md:
@@ -138,7 +138,7 @@ transformations:
   dependencies:
   - init
   workflow_entry_skill: annotate-sources
-  installed_at: '2026-05-18T13:41:39.273145+00:00'
+  installed_at: '1970-01-01T00:00:00+00:00'
   agent: codex
   files:
     .agents/skills/annotate-sources/SKILL.md:

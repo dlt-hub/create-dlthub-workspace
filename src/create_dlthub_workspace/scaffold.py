@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .errors import ScaffoldError
@@ -18,6 +19,13 @@ AGENT_FILES: dict[str, tuple[str, ...]] = {
     "cursor": (".cursor",),
     "codex": (".codex", "AGENTS.md"),
 }
+
+# The vendored `.dlt/.toolkits` manifest stores an `installed_at` ISO timestamp
+# per toolkit. We commit it with this sentinel so `check-ai` diffs stay clean
+# across machines; copy_scaffold replaces it with the real install time when
+# the user actually creates a workspace.
+TOOLKITS_MANIFEST = Path(".dlt") / ".toolkits"
+INSTALL_TIME_SENTINEL = "1970-01-01T00:00:00+00:00"
 
 
 def validate_scaffold_target(project_dir: Path, *, scaffold: str) -> None:
@@ -53,6 +61,20 @@ def copy_scaffold(project_dir: Path, *, scaffold: str, agents: tuple[str, ...] =
                     shutil.rmtree(target)
                 elif target.exists():
                     target.unlink()
+
+    _stamp_install_time(project_dir)
+
+
+def _stamp_install_time(project_dir: Path) -> None:
+    """Replace the sentinel `installed_at` in the toolkits manifest with now."""
+    manifest = project_dir / TOOLKITS_MANIFEST
+    if not manifest.exists():
+        return
+    content = manifest.read_text(encoding="utf-8")
+    if INSTALL_TIME_SENTINEL not in content:
+        return
+    now_iso = datetime.now(timezone.utc).isoformat()
+    manifest.write_text(content.replace(INSTALL_TIME_SENTINEL, now_iso), encoding="utf-8")
 
 
 def _ignore_runtime(src: str, names: list[str]) -> set[str]:

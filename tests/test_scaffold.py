@@ -5,7 +5,13 @@ import unittest
 from pathlib import Path
 
 from create_dlthub_workspace.errors import ScaffoldError
-from create_dlthub_workspace.scaffold import AGENT_FILES, SCAFFOLDS_DIR, copy_scaffold
+from create_dlthub_workspace.scaffold import (
+    AGENT_FILES,
+    INSTALL_TIME_SENTINEL,
+    SCAFFOLDS_DIR,
+    _stamp_install_time,
+    copy_scaffold,
+)
 
 
 class CopyScaffoldTests(unittest.TestCase):
@@ -73,6 +79,41 @@ class CopyScaffoldTests(unittest.TestCase):
                 self.assertFalse((project_dir / entry).exists(), f"{entry} should be removed")
             for entry in AGENT_FILES["codex"]:
                 self.assertFalse((project_dir / entry).exists(), f"{entry} should be removed")
+
+
+class StampInstallTimeTests(unittest.TestCase):
+    def test_replaces_sentinel_with_current_timestamp(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir)
+            manifest = project_dir / ".dlt" / ".toolkits"
+            manifest.parent.mkdir()
+            manifest.write_text(
+                f"init:\n  installed_at: '{INSTALL_TIME_SENTINEL}'\n  agent: claude\n",
+                encoding="utf-8",
+            )
+
+            _stamp_install_time(project_dir)
+
+            updated = manifest.read_text(encoding="utf-8")
+            self.assertNotIn(INSTALL_TIME_SENTINEL, updated)
+            # Real timestamps start with a 4-digit year and end with the UTC offset.
+            self.assertRegex(updated, r"installed_at: '\d{4}-\d{2}-\d{2}T.+\+00:00'")
+
+    def test_noop_when_manifest_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            _stamp_install_time(Path(tmpdir))  # must not raise
+
+    def test_noop_when_sentinel_already_replaced(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir)
+            manifest = project_dir / ".dlt" / ".toolkits"
+            manifest.parent.mkdir()
+            already_stamped = "installed_at: '2024-01-01T00:00:00+00:00'\n"
+            manifest.write_text(already_stamped, encoding="utf-8")
+
+            _stamp_install_time(project_dir)
+
+            self.assertEqual(manifest.read_text(encoding="utf-8"), already_stamped)
 
 
 class ScaffoldsDirTests(unittest.TestCase):

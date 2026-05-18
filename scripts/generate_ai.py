@@ -16,6 +16,7 @@ Commit the resulting diff alongside any `WORKBENCH_REF` bump.
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -26,7 +27,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from create_dlthub_workspace.config import AGENTS, TOOLKITS, WORKBENCH_REF  # noqa: E402
-from create_dlthub_workspace.scaffold import SCAFFOLDS_DIR  # noqa: E402
+from create_dlthub_workspace.scaffold import (  # noqa: E402
+    INSTALL_TIME_SENTINEL,
+    SCAFFOLDS_DIR,
+    TOOLKITS_MANIFEST,
+)
+
+_INSTALLED_AT_RE = re.compile(r"installed_at: '[^']*'")
 
 # Top-level entries (relative to the scaffold root) that `dlthub ai init` /
 # `toolkit install` produce. These are wiped before regeneration and replaced
@@ -147,7 +154,22 @@ def regenerate(scaffold_dir: Path) -> None:
             else:
                 shutil.copy2(source, target)
 
+        _normalize_install_time(scaffold_dir / TOOLKITS_MANIFEST)
+
     print("  done")
+
+
+def _normalize_install_time(manifest: Path) -> None:
+    """Replace dynamic `installed_at` timestamps with a fixed sentinel.
+
+    Keeps `check-ai` diffs clean across machines; copy_scaffold restores a
+    real UTC timestamp when a user actually creates a workspace.
+    """
+    if not manifest.exists():
+        return
+    content = manifest.read_text(encoding="utf-8")
+    content = _INSTALLED_AT_RE.sub(f"installed_at: '{INSTALL_TIME_SENTINEL}'", content)
+    manifest.write_text(content, encoding="utf-8")
 
 
 def main() -> int:
