@@ -15,12 +15,23 @@ from .config import VERSION
 
 console = Console()
 
-TIPS = (
-    ("/init-workspace", "set up a fresh Python environment"),
-    ("/find-source", "load data from a REST API"),
-    ("/explore-data", "query and explore loaded tables"),
-    ("/setup-runtime", "deploy your pipeline to dltHub"),
-)
+NEXT_STEPS: dict[str, tuple[tuple[str, str | None], ...]] = {
+    "starter_workspace": (
+        (
+            "Run the ingestion pipeline in dltHub (transformations auto-trigger; you'll be prompted to connect/login):",
+            "uv run dlthub run load_breweries",
+        ),
+        ("Open the dltHub dashboard:", "uv run dlthub show"),
+    ),
+    "minimal_workspace": (
+        (
+            "Run the placeholder pipeline in dltHub (you'll be prompted to connect/login):",
+            "uv run dlthub run load_data",
+        ),
+        ("Open the dltHub dashboard:", "uv run dlthub show"),
+        ("Edit pipeline.py to swap the placeholder for a real source, then re-run.", None),
+    ),
+}
 
 
 @contextmanager
@@ -206,18 +217,21 @@ def print_banner() -> None:
     )
 
 
-def print_next_steps(project_dir: Path) -> None:
-    """Post-setup tips panel. Used after a fully successful run."""
+def print_next_steps(project_dir: Path, *, scaffold: str) -> None:
+    """Post-setup tips panel. Steps are tailored to the chosen scaffold."""
+    steps = NEXT_STEPS[scaffold]
+
     body = Text()
     body.append("  cd ", style="dim")
     body.append(str(project_dir), style="bold #59C1D5")
     body.append("\n\n")
-    body.append("Tips for getting started\n\n", style="bold #C6D300")
-    for cmd, desc in TIPS:
-        body.append("  Run ", style="dim")
-        body.append(cmd, style="bold #59C1D5")
-        body.append(f"  {desc}\n", style="dim")
-    body.append("\n  Docs: ", style="dim")
+    body.append("What to try next\n\n", style="bold #C6D300")
+    for index, (label, command) in enumerate(steps, start=1):
+        body.append(f"  {index}. {label}\n", style="dim")
+        if command is not None:
+            body.append(f"     {command}\n", style="bold #59C1D5")
+        body.append("\n")
+    body.append("  Docs: ", style="dim")
     body.append(
         "github.com/dlt-hub/dlthub-ai-workbench",
         style="underline #59C1D5 link https://github.com/dlt-hub/dlthub-ai-workbench/blob/master/README.md",

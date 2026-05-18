@@ -119,7 +119,7 @@ def execute_plan(plan: WorkspacePlan) -> None:
         console.print(f"  [green]Installed[/green] {toolkit}")
 
     console.print()
-    print_next_steps(plan.project_dir)
+    print_next_steps(plan.project_dir, scaffold=plan.scaffold)
 
 
 if __name__ == "__main__":
