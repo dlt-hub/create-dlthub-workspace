@@ -105,7 +105,7 @@ def execute_plan(plan: WorkspacePlan) -> None:
 
     with step("Installing dependencies", verbose=verbose):
         run_uv_sync(uv_executable, plan.project_dir, verbose=verbose)
-    console.print("[green]Installed[/green] dependencies")
+    console.print("[green]Installed[/green] dependencies into .venv")
 
     console.print("\n[bold]Initializing AI workbench[/bold]")
     for agent in plan.agents:
