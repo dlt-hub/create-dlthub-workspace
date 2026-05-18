@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from create_dlthub_workspace.uv import run_uv_command, run_uv_sync
+from create_dlthub_workspace.errors import UvError
+from create_dlthub_workspace.uv import (
+    execute_uv_install,
+    find_uv,
+    run_uv_command,
+    run_uv_sync,
+)
 
 
 class UvTests(unittest.TestCase):
@@ -38,6 +46,76 @@ class UvTests(unittest.TestCase):
         subprocess_run.assert_called_once()
         self.assertEqual(subprocess_run.call_args.args[0], ["/usr/local/bin/uv", "run", "dlthub", "--version"])
         self.assertEqual(subprocess_run.call_args.kwargs["cwd"], Path("/tmp/workspace"))
+
+
+class FindUvTests(unittest.TestCase):
+    @patch("create_dlthub_workspace.uv.shutil.which", return_value="/usr/local/bin/uv")
+    def test_returns_path_when_uv_is_on_path(self, _which: MagicMock) -> None:
+        self.assertEqual(find_uv(), "/usr/local/bin/uv")
+
+    @patch("create_dlthub_workspace.uv.shutil.which", return_value=None)
+    def test_falls_back_to_common_install_paths(self, _which: MagicMock) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            candidate = Path(tmpdir) / "uv"
+            candidate.touch()
+            with patch(
+                "create_dlthub_workspace.uv._common_uv_paths",
+                return_value=(candidate,),
+            ):
+                self.assertEqual(find_uv(), str(candidate))
+
+    @patch(
+        "create_dlthub_workspace.uv._common_uv_paths",
+        return_value=(Path("/nonexistent/uv"),),
+    )
+    @patch("create_dlthub_workspace.uv.shutil.which", return_value=None)
+    def test_returns_none_when_uv_absent_everywhere(
+        self,
+        _which: MagicMock,
+        _paths: MagicMock,
+    ) -> None:
+        self.assertIsNone(find_uv())
+
+
+class ExecuteUvInstallTests(unittest.TestCase):
+    @patch("create_dlthub_workspace.uv.find_uv", return_value="/usr/local/bin/uv")
+    @patch("create_dlthub_workspace.uv.install_uv")
+    def test_returns_path_when_uv_is_findable_after_install(
+        self,
+        install_uv: MagicMock,
+        _find_uv: MagicMock,
+    ) -> None:
+        self.assertEqual(execute_uv_install(), "/usr/local/bin/uv")
+        install_uv.assert_called_once()
+
+    @patch("create_dlthub_workspace.uv.find_uv", return_value=None)
+    @patch("create_dlthub_workspace.uv.install_uv")
+    def test_raises_uv_error_when_uv_still_missing_after_install(
+        self,
+        _install_uv: MagicMock,
+        _find_uv: MagicMock,
+    ) -> None:
+        with self.assertRaises(UvError):
+            execute_uv_install()
+
+
+class RunUvSubprocessFailureTests(unittest.TestCase):
+    @patch("subprocess.run")
+    def test_run_uv_sync_raises_uv_error_on_subprocess_failure(
+        self,
+        subprocess_run: MagicMock,
+    ) -> None:
+        subprocess_run.side_effect = subprocess.CalledProcessError(
+            returncode=1,
+            cmd=["uv", "sync"],
+            stderr=b"resolution failed: package not found",
+        )
+
+        with self.assertRaises(UvError) as cm:
+            run_uv_sync("/usr/local/bin/uv", project_dir=Path("/tmp/workspace"))
+
+        self.assertIn("exit code 1", str(cm.exception))
+        self.assertIn("resolution failed", str(cm.exception))
 
 
 if __name__ == "__main__":

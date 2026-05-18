@@ -46,6 +46,7 @@ AI_GENERATED_ENTRIES: tuple[str, ...] = (
     ".cursor",
     ".cursorignore",
     ".codex",
+    ".codexignore",
     "AGENTS.md",
     ".mcp.json",
     ".dlt/.toolkits",

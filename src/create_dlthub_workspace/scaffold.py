@@ -16,8 +16,8 @@ SCAFFOLDS_DIR = Path(__file__).parent / "scaffolds"
 # source AND it holds the shared toolkit pool that all agents reference.
 AGENT_FILES: dict[str, tuple[str, ...]] = {
     "claude": (".claude", ".claudeignore", ".mcp.json"),
-    "cursor": (".cursor",),
-    "codex": (".codex", "AGENTS.md"),
+    "cursor": (".cursor", ".cursorignore"),
+    "codex": (".codex", ".codexignore", "AGENTS.md"),
 }
 
 # The vendored `.dlt/.toolkits` manifest stores an `installed_at` ISO timestamp
@@ -52,17 +52,28 @@ def copy_scaffold(project_dir: Path, *, scaffold: str, agents: tuple[str, ...] =
     shutil.copytree(source, project_dir, ignore=_ignore_runtime, dirs_exist_ok=True)
 
     if agents:
-        for agent, entries in AGENT_FILES.items():
-            if agent in agents:
-                continue
-            for entry in entries:
-                target = project_dir / entry
-                if target.is_dir():
-                    shutil.rmtree(target)
-                elif target.exists():
-                    target.unlink()
+        _drop_unselected_agent_entries(project_dir, agents)
 
     _stamp_install_time(project_dir)
+
+
+def _drop_unselected_agent_entries(project_dir: Path, agents: tuple[str, ...]) -> None:
+    """Remove top-level entries for agents not in the selection.
+
+    NB: passes through AGENT_FILES.items(), so an agents tuple containing
+    names that aren't in AGENT_FILES (typos, unknown agents) match nothing
+    and every entry gets removed. Argparse normally guards this via
+    `choices=AGENTS`, but programmatic callers should pass validated values.
+    """
+    for agent, entries in AGENT_FILES.items():
+        if agent in agents:
+            continue
+        for entry in entries:
+            target = project_dir / entry
+            if target.is_dir():
+                shutil.rmtree(target)
+            elif target.exists():
+                target.unlink()
 
 
 def _stamp_install_time(project_dir: Path) -> None:

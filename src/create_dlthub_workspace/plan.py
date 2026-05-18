@@ -41,11 +41,22 @@ class WorkspacePlan:
 
 
 def build_plan(args: argparse.Namespace) -> WorkspacePlan:
-    """Gather every answer needed to scaffold the workspace. No filesystem writes."""
+    """Gather every answer needed to scaffold the workspace. No filesystem writes.
+
+    Order: content questions first (scaffold + agents), then setup questions
+    (uv install + sync). AI workbenches are vendored into the scaffold, so
+    they don't depend on uv being installed — asking agents up front means
+    a user passing `--agent claude --skip-uv-sync` gets exactly what they
+    asked for instead of silently losing the agent selection.
+    """
     project_dir = Path(args.project_dir).expanduser().resolve()
 
     scaffold = args.scaffold or (RECOMMENDED.scaffold if args.yes else choose_scaffold())
     validate_scaffold_target(project_dir, scaffold=scaffold)
+
+    agents = tuple(args.agent or (RECOMMENDED.agents if args.yes else choose_agents()))
+    if not agents:
+        raise WorkspaceError("At least one AI workbench must be selected.")
 
     uv_executable = find_uv()
     install_uv = False
@@ -69,13 +80,6 @@ def build_plan(args: argparse.Namespace) -> WorkspacePlan:
             )
         ):
             stage = WorkspaceStage.THROUGH_UV_INSTALL
-
-    if stage == WorkspaceStage.FULL:
-        agents = tuple(args.agent or (RECOMMENDED.agents if args.yes else choose_agents()))
-        if not agents:
-            raise WorkspaceError("At least one AI workbench must be selected.")
-    else:
-        agents = ()
 
     return WorkspacePlan(
         project_dir=project_dir,

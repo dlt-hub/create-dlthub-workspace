@@ -1,0 +1,201 @@
+"""Tests for the CLI entrypoint: argparse surface + main exit codes."""
+
+from __future__ import annotations
+
+import contextlib
+import io
+import unittest
+from typing import Iterator
+from unittest.mock import MagicMock, patch
+
+from pathlib import Path
+
+from create_dlthub_workspace.cli import build_parser, execute_plan, main
+from create_dlthub_workspace.errors import WorkspaceError
+from create_dlthub_workspace.plan import WorkspacePlan, WorkspaceStage
+
+
+@contextlib.contextmanager
+def _silenced() -> Iterator[None]:
+    """Suppress stdout + stderr noise from argparse errors and rich.console."""
+    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+        yield
+
+
+class BuildParserTests(unittest.TestCase):
+    def test_requires_project_dir_positional(self) -> None:
+        parser = build_parser()
+        with _silenced(), self.assertRaises(SystemExit):
+            parser.parse_args([])
+
+    def test_rejects_unknown_scaffold(self) -> None:
+        parser = build_parser()
+        with _silenced(), self.assertRaises(SystemExit):
+            parser.parse_args(["my_workspace", "--scaffold", "does-not-exist"])
+
+    def test_rejects_unknown_agent(self) -> None:
+        parser = build_parser()
+        with _silenced(), self.assertRaises(SystemExit):
+            parser.parse_args(["my_workspace", "--agent", "not-an-agent"])
+
+    def test_yes_flag_parses_to_true(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["my_workspace", "--yes"])
+        self.assertTrue(args.yes)
+
+    def test_short_yes_flag_parses_to_true(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["my_workspace", "-y"])
+        self.assertTrue(args.yes)
+
+    def test_yes_defaults_to_false(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["my_workspace"])
+        self.assertFalse(args.yes)
+
+    def test_skip_uv_sync_flag_parses_to_true(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["my_workspace", "--skip-uv-sync"])
+        self.assertTrue(args.skip_uv_sync)
+
+    def test_agent_action_appends_multiple_values(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["my_workspace", "--agent", "claude", "--agent", "cursor"])
+        self.assertEqual(args.agent, ["claude", "cursor"])
+
+    def test_agent_defaults_to_none(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["my_workspace"])
+        self.assertIsNone(args.agent)
+
+    def test_scaffold_defaults_to_none(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["my_workspace"])
+        self.assertIsNone(args.scaffold)
+
+
+class MainExitCodeTests(unittest.TestCase):
+    @patch("create_dlthub_workspace.cli.run")
+    def test_returns_zero_on_success(self, _run: MagicMock) -> None:
+        with _silenced():
+            self.assertEqual(main(["my_workspace"]), 0)
+
+    @patch("create_dlthub_workspace.cli.run")
+    def test_returns_one_on_workspace_error(self, run: MagicMock) -> None:
+        run.side_effect = WorkspaceError("boom")
+        with _silenced():
+            self.assertEqual(main(["my_workspace"]), 1)
+
+    @patch("create_dlthub_workspace.cli.run")
+    def test_returns_130_on_keyboard_interrupt(self, run: MagicMock) -> None:
+        run.side_effect = KeyboardInterrupt
+        with _silenced():
+            self.assertEqual(main(["my_workspace"]), 130)
+
+
+def _make_plan(**overrides: object) -> WorkspacePlan:
+    """Construct a WorkspacePlan with sensible defaults; tests override fields."""
+    defaults: dict[str, object] = {
+        "project_dir": Path("/tmp/test_workspace"),
+        "scaffold": "starter_workspace",
+        "stage": WorkspaceStage.FULL,
+        "agents": ("claude",),
+        "uv_executable": "/usr/local/bin/uv",
+        "install_uv": False,
+        "verbose": False,
+    }
+    defaults.update(overrides)
+    return WorkspacePlan(**defaults)  # type: ignore[arg-type]
+
+
+class ExecutePlanFlowTests(unittest.TestCase):
+    """Pins down the orchestration order: copy, then conditional uv work, then next steps."""
+
+    @patch("create_dlthub_workspace.cli.print_next_steps")
+    @patch("create_dlthub_workspace.cli.print_resume_steps")
+    @patch("create_dlthub_workspace.cli.run_uv_sync")
+    @patch("create_dlthub_workspace.cli.execute_uv_install")
+    @patch("create_dlthub_workspace.cli.apply_workspace_name", return_value="test-workspace")
+    @patch("create_dlthub_workspace.cli.copy_scaffold")
+    def test_full_stage_runs_copy_sync_next_steps(
+        self,
+        copy_scaffold: MagicMock,
+        _apply_name: MagicMock,
+        execute_uv_install: MagicMock,
+        run_uv_sync: MagicMock,
+        print_resume_steps: MagicMock,
+        print_next_steps: MagicMock,
+    ) -> None:
+        with _silenced():
+            execute_plan(_make_plan(stage=WorkspaceStage.FULL))
+
+        copy_scaffold.assert_called_once()
+        run_uv_sync.assert_called_once()
+        print_next_steps.assert_called_once()
+        execute_uv_install.assert_not_called()  # uv was already present in the plan
+        print_resume_steps.assert_not_called()
+
+    @patch("create_dlthub_workspace.cli.print_next_steps")
+    @patch("create_dlthub_workspace.cli.print_resume_steps")
+    @patch("create_dlthub_workspace.cli.run_uv_sync")
+    @patch("create_dlthub_workspace.cli.execute_uv_install")
+    @patch("create_dlthub_workspace.cli.apply_workspace_name", return_value="test-workspace")
+    @patch("create_dlthub_workspace.cli.copy_scaffold")
+    def test_scaffold_only_stage_stops_after_copy(
+        self,
+        copy_scaffold: MagicMock,
+        _apply_name: MagicMock,
+        execute_uv_install: MagicMock,
+        run_uv_sync: MagicMock,
+        print_resume_steps: MagicMock,
+        print_next_steps: MagicMock,
+    ) -> None:
+        with _silenced():
+            execute_plan(
+                _make_plan(
+                    stage=WorkspaceStage.SCAFFOLD_ONLY,
+                    agents=(),
+                    uv_executable=None,
+                ),
+            )
+
+        copy_scaffold.assert_called_once()
+        execute_uv_install.assert_not_called()
+        run_uv_sync.assert_not_called()
+        print_next_steps.assert_not_called()
+        print_resume_steps.assert_called_once_with(Path("/tmp/test_workspace"), uv_installed=False)
+
+    @patch("create_dlthub_workspace.cli.print_next_steps")
+    @patch("create_dlthub_workspace.cli.print_resume_steps")
+    @patch("create_dlthub_workspace.cli.run_uv_sync")
+    @patch("create_dlthub_workspace.cli.execute_uv_install", return_value="/usr/local/bin/uv")
+    @patch("create_dlthub_workspace.cli.apply_workspace_name", return_value="test-workspace")
+    @patch("create_dlthub_workspace.cli.copy_scaffold")
+    def test_through_uv_install_stage_installs_uv_then_stops(
+        self,
+        copy_scaffold: MagicMock,
+        _apply_name: MagicMock,
+        execute_uv_install: MagicMock,
+        run_uv_sync: MagicMock,
+        print_resume_steps: MagicMock,
+        print_next_steps: MagicMock,
+    ) -> None:
+        with _silenced():
+            execute_plan(
+                _make_plan(
+                    stage=WorkspaceStage.THROUGH_UV_INSTALL,
+                    agents=(),
+                    uv_executable=None,
+                    install_uv=True,
+                ),
+            )
+
+        copy_scaffold.assert_called_once()
+        execute_uv_install.assert_called_once()
+        run_uv_sync.assert_not_called()
+        print_next_steps.assert_not_called()
+        print_resume_steps.assert_called_once_with(Path("/tmp/test_workspace"), uv_installed=True)
+
+
+if __name__ == "__main__":
+    unittest.main()

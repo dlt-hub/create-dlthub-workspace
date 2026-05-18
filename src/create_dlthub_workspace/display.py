@@ -249,12 +249,13 @@ def print_next_steps(project_dir: Path, *, scaffold: str) -> None:
 
 
 def print_resume_steps(project_dir: Path, *, uv_installed: bool) -> None:
-    """Remaining setup commands. Used when execution stops before AI work."""
+    """Remaining setup commands. AI workbench files are already in the
+    workspace (vendored into the scaffold), so the only thing the user still
+    needs to do is finish the uv setup."""
     steps: list[tuple[str, str]] = []
     if not uv_installed:
         steps.append(("Install uv:", "curl -LsSf https://astral.sh/uv/install.sh | sh"))
     steps.append(("Install workspace dependencies:", "uv sync"))
-    steps.append(("Initialize an AI workbench:", "uv run dlthub ai init --agent claude"))
 
     body = Text()
     body.append("  cd ", style="dim")

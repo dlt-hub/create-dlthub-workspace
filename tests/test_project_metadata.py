@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from create_dlthub_workspace.errors import ScaffoldError
 from create_dlthub_workspace.project_metadata import apply_workspace_name, normalize_project_name
 
 
@@ -36,3 +37,16 @@ class ProjectMetadataTests(unittest.TestCase):
             apply_workspace_name(project_dir, "New Workspace")
 
             self.assertIn('name = "new-workspace"', pyproject.read_text(encoding="utf-8"))
+
+    def test_apply_workspace_name_raises_on_malformed_pyproject(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir)
+            pyproject = project_dir / "pyproject.toml"
+            pyproject.write_text("this is not valid toml [[[", encoding="utf-8")
+
+            with self.assertRaises(ScaffoldError):
+                apply_workspace_name(project_dir, "any-name")
+
+
+if __name__ == "__main__":
+    unittest.main()
