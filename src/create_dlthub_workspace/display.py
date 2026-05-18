@@ -33,6 +33,24 @@ NEXT_STEPS: dict[str, tuple[tuple[str, str | None], ...]] = {
     ),
 }
 
+CREATED_TREE: dict[str, tuple[str, ...]] = {
+    "starter_workspace": (
+        "pyproject.toml",
+        "starter_pipeline.py",
+        "starter_transformations.py",
+        "starter_data_quality.py",
+        "notebooks/",
+        ".dlt/",
+        ".agents/",
+    ),
+    "minimal_workspace": (
+        "pyproject.toml",
+        "pipeline.py",
+        ".dlt/",
+        ".agents/",
+    ),
+}
+
 
 @contextmanager
 def step(description: str, *, verbose: bool = False) -> Iterator[None]:
@@ -217,14 +235,24 @@ def print_banner() -> None:
     )
 
 
-def print_next_steps(project_dir: Path, *, scaffold: str) -> None:
+def print_next_steps(project_dir: Path, *, scaffold: str, agents: tuple[str, ...] = ()) -> None:
     """Post-setup tips panel. Steps are tailored to the chosen scaffold."""
     steps = NEXT_STEPS[scaffold]
+    created_tree = CREATED_TREE[scaffold]
 
     body = Text()
     body.append("  cd ", style="dim")
     body.append(str(project_dir), style="bold #59C1D5")
     body.append("\n\n")
+    body.append("Created\n\n", style="bold #C6D300")
+    for index, entry in enumerate(created_tree):
+        branch = "`-- " if index == len(created_tree) - 1 else "|-- "
+        body.append(f"  {branch}{entry}\n", style="dim")
+    if agents:
+        body.append("  AI workbenches: ", style="dim")
+        body.append(", ".join(agents), style="bold #59C1D5")
+        body.append("\n")
+    body.append("\n")
     body.append("What to try next\n\n", style="bold #C6D300")
     for index, (label, command) in enumerate(steps, start=1):
         body.append(f"  {index}. {label}\n", style="dim")

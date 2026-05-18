@@ -160,3 +160,4 @@ The package exposes two equivalent console commands:
 create-dlthub-workspace
 create-dlthub-project
 ```
+

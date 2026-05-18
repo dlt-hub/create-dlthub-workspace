@@ -129,7 +129,7 @@ def execute_plan(plan: WorkspacePlan) -> None:
     console.print("[green]Installed[/green] dependencies into .venv")
 
     console.print()
-    print_next_steps(plan.project_dir, scaffold=plan.scaffold)
+    print_next_steps(plan.project_dir, scaffold=plan.scaffold, agents=plan.agents)
 
 
 if __name__ == "__main__":
