@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 
 from .config import AGENTS, DEFAULT_AGENT, DEFAULT_SCAFFOLD, SCAFFOLDS, TOOLKITS
 from .dlt_ai import initialize_agent, install_toolkit
 from .errors import WorkspaceError
+from .plan import WorkspacePlan, build_plan
 from .project_metadata import apply_workspace_name
 from .scaffold import copy_scaffold
-from .ui import choose_agents, choose_scaffold, confirm, console, print_banner, print_next_steps, step
-from .uv import ensure_uv, run_uv_sync
+from .display import console, print_banner, print_next_steps, step
+from .uv import execute_uv_install, run_uv_sync
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -71,52 +71,51 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def run(args: argparse.Namespace) -> None:
-    project_dir = Path(args.project_dir).expanduser().resolve()
-    verbose = args.verbose
-
     print_banner()
     console.print()
 
-    scaffold = args.scaffold or (DEFAULT_SCAFFOLD if args.yes else choose_scaffold())
-    agents = args.agent or ([DEFAULT_AGENT] if args.yes else choose_agents())
-    if not agents:
-        raise WorkspaceError("At least one AI workbench must be selected.")
+    plan = build_plan(args)
+    execute_plan(plan)
 
-    uv_executable = ensure_uv(
-        assume_yes=args.yes,
-        confirm_install=confirm,
-        verbose=verbose,
-    )
 
-    with step(f"Creating workspace at {project_dir}", verbose=verbose):
-        copy_scaffold(project_dir, scaffold=scaffold)
-        package_name = apply_workspace_name(project_dir, project_dir.name)
+def execute_plan(plan: WorkspacePlan) -> None:
+    verbose = plan.verbose
 
-    console.print(f"[green]Created[/green] {project_dir}")
+    if plan.install_uv:
+        uv_executable = execute_uv_install(verbose=verbose)
+    else:
+        assert plan.uv_executable is not None
+        uv_executable = plan.uv_executable
+
+    with step(f"Creating workspace at {plan.project_dir}", verbose=verbose):
+        copy_scaffold(plan.project_dir, scaffold=plan.scaffold)
+        package_name = apply_workspace_name(plan.project_dir, plan.project_dir.name)
+
+    console.print(f"[green]Created[/green] {plan.project_dir}")
     console.print(f"[dim]Project package name:[/dim] {package_name}")
 
-    if args.skip_uv_sync:
+    if plan.skip_uv_sync:
         console.print(
-            f"[yellow]Skipped[/yellow] dependency sync. Run `cd {project_dir} && uv sync` later."
+            f"[yellow]Skipped[/yellow] dependency sync. Run `cd {plan.project_dir} && uv sync` later."
         )
     else:
         with step("Installing dependencies", verbose=verbose):
-            run_uv_sync(uv_executable, project_dir, verbose=verbose)
+            run_uv_sync(uv_executable, plan.project_dir, verbose=verbose)
         console.print("[green]Installed[/green] dependencies")
 
-    for agent in agents:
+    for agent in plan.agents:
         with step(f"Initializing {agent}", verbose=verbose):
-            initialize_agent(uv_executable, project_dir, agent, verbose=verbose)
+            initialize_agent(uv_executable, plan.project_dir, agent, verbose=verbose)
         console.print(f"[green]Initialized[/green] {agent}")
 
     console.print("\n[bold]Installing dltHub AI toolkits[/bold]")
     for toolkit in TOOLKITS:
         with step(f"  Installing {toolkit}", verbose=verbose):
-            install_toolkit(uv_executable, project_dir, toolkit, verbose=verbose)
+            install_toolkit(uv_executable, plan.project_dir, toolkit, verbose=verbose)
         console.print(f"  [green]Installed[/green] {toolkit}")
 
     console.print()
-    print_next_steps(project_dir)
+    print_next_steps(plan.project_dir)
 
 
 if __name__ == "__main__":

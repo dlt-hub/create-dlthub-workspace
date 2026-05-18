@@ -1,4 +1,4 @@
-"""Rich-powered terminal UI for create-dlthub-workspace."""
+"""Rich-powered output: banner, spinners, next-steps panel."""
 
 from __future__ import annotations
 
@@ -6,19 +6,21 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
-import beaupy
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
 
-from .config import AGENTS, DEFAULT_AGENT, DEFAULT_SCAFFOLD, SCAFFOLDS, TIPS, VERSION
-
-CURSOR = "❯"
-CURSOR_STYLE = "#59C1D5"
-TICK_CHAR = "●"
+from .config import VERSION
 
 console = Console()
+
+TIPS = (
+    ("/init-workspace", "set up a fresh Python environment"),
+    ("/find-source", "load data from a REST API"),
+    ("/explore-data", "query and explore loaded tables"),
+    ("/setup-runtime", "deploy your pipeline to dltHub"),
+)
 
 
 @contextmanager
@@ -36,6 +38,7 @@ def step(description: str, *, verbose: bool = False) -> Iterator[None]:
     ) as progress:
         progress.add_task(description, total=None)
         yield
+
 
 ROWS = [
     [("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", ""), ("", "")],
@@ -71,58 +74,6 @@ def print_banner() -> None:
     )
 
 
-def choose_scaffold(default: str = DEFAULT_SCAFFOLD) -> str:
-    """Arrow-key select for the bundled scaffold."""
-    keys = [key for key, _, _ in SCAFFOLDS]
-    options = [
-        f"[bold]{label}[/bold]   [dim]{description}[/dim]"
-        for _, label, description in SCAFFOLDS
-    ]
-    default_index = keys.index(default) if default in keys else 0
-
-    console.print(
-        "\n[bold]Choose a scaffold[/bold] [dim](↑/↓ to move, enter to confirm)[/dim]"
-    )
-    index = beaupy.select(
-        options,
-        cursor=CURSOR,
-        cursor_style=CURSOR_STYLE,
-        cursor_index=default_index,
-        return_index=True,
-    )
-    return keys[index]
-
-
-def choose_agents(default: str = DEFAULT_AGENT) -> list[str]:
-    """Arrow-key multi-select for AI workbenches."""
-    agents = list(AGENTS)
-    default_index = agents.index(default) if default in agents else 0
-
-    console.print(
-        "\n[bold]Choose AI workbench(es)[/bold] "
-        "[dim](space to toggle, enter to confirm)[/dim]"
-    )
-    return beaupy.select_multiple(
-        agents,
-        cursor_style=CURSOR_STYLE,
-        tick_character=TICK_CHAR,
-        tick_style=CURSOR_STYLE,
-        ticked_indices=[default_index],
-    )
-
-
-def confirm(message: str, *, default: bool = True) -> bool:
-    """Arrow-key Yes/No confirmation."""
-    console.print(f"\n[bold]{message}[/bold]")
-    choice = beaupy.select(
-        ["Yes", "No"],
-        cursor=CURSOR,
-        cursor_style=CURSOR_STYLE,
-        cursor_index=0 if default else 1,
-    )
-    return choice == "Yes"
-
-
 def print_next_steps(project_dir: Path) -> None:
     body = Text()
     body.append("  cd ", style="dim")
@@ -148,4 +99,3 @@ def print_next_steps(project_dir: Path) -> None:
             padding=(1, 2),
         )
     )
-

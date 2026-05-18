@@ -27,15 +27,8 @@ def find_uv() -> str | None:
     return None
 
 
-def ensure_uv(*, assume_yes: bool, confirm_install, verbose: bool = False) -> str:
-    """Return a uv executable, installing uv if the user approves."""
-    uv = find_uv()
-    if uv:
-        return uv
-
-    if not assume_yes and not confirm_install("uv is required but was not found. Install uv now?"):
-        raise UvError("uv is required. Install uv and run this command again.")
-
+def execute_uv_install(*, verbose: bool = False) -> str:
+    """Install uv and return its path. Raises if it is not on PATH afterward."""
     install_uv(verbose=verbose)
     uv = find_uv()
     if uv:

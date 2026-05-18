@@ -1,0 +1,151 @@
+init:
+  version: 0.1.0
+  description: Shared rules, secrets handling, and workspace MCP for dlt
+  tags:
+  - dlt
+  - init
+  - rules
+  - secrets
+  - mcp
+  installed_at: '2026-05-18T08:04:40.171086+00:00'
+  agent: claude
+  files:
+    .claude/skills/improve-skills/SKILL.md:
+      sha3_256: c52b222d82d101eaacbbf19d271d3f24b20d8e2bc70d49919d56144d448cd5c4
+    .claude/skills/setup-secrets/SKILL.md:
+      sha3_256: ba00c7451c4686cd37d1bb4242487751fe5e2402c3f9f6ae5888ba42f922a166
+    .claude/skills/setup-secrets/cli-reference.md:
+      sha3_256: afb4bebdc1f3a84cd692303e069ed729ea32820d8efd5f8d3cccfe702c18e979
+    .claude/skills/toolkit-dispatch/SKILL.md:
+      sha3_256: a90e45a30a169041b8c05efaeff3f37cbd401358a54ec8f5e641d92e132f5979
+    .claudeignore:
+      sha3_256: 1aa4dc9286dd219dcb55399f388c5ee1f940ab5e399a42b644d488cba57a9ec0
+    .claude/rules/init-dlthub-workspace.md:
+      sha3_256: c551ac71f74277ebb85a81f7ce823144b4bf02cd3865fa3cf3c899b0687d3883
+  mcp_servers:
+  - dlt-workspace-mcp
+  name: init
+data-exploration:
+  version: 0.1.0
+  description: Quick insights from dlt pipeline data. Connect to a pipeline, profile
+    tables, plan charts, and assemble marimo dashboards.
+  tags:
+  - dlt
+  - marimo
+  - ibis
+  - data-exploration
+  - dashboards
+  - altair
+  dependencies:
+  - init
+  workflow_entry_skill: explore-data
+  installed_at: '2026-05-18T08:04:42.246487+00:00'
+  agent: claude
+  files:
+    .claude/skills/build-notebook/SKILL.md:
+      sha3_256: 8fd39d4e18cfd8e1747c85a02c57b0e0aca78c31e3925162ebd76ab6a70a091a
+    .claude/skills/build-notebook/references/notebook-patterns.md:
+      sha3_256: 96d80469820be9e1beddd10961b0a588da526c7678a0d12561e24f30e91037d3
+    .claude/skills/explore-data/SKILL.md:
+      sha3_256: 85c38b92574410c43d7aa880b5ac486f8e70164ff442253e027a85e98e4e99fe
+    .claude/skills/explore-data/references/analysis-plan-format.md:
+      sha3_256: 8fcb5223200f4e566432fda35be8b555b8a88274b9f1dc42c41a21c4d6ddbab5
+    .claude/skills/explore-data/references/dlt-relation-api.md:
+      sha3_256: 4145d283ab6c0bf87e5289460f0a951aa2163d6ae118dfdca69eef824f2d91ee
+    .claude/rules/data-exploration-workflow.md:
+      sha3_256: a234e5d8c11f537e041c0614ed8cad6296f28dea7346bbf7ac5f4f81dec47f07
+  name: data-exploration
+dlthub-runtime:
+  version: 0.1.2
+  description: Deploy dlt workspace and pipelines to the dltHub platform
+  tags:
+  - dlt
+  - deploy
+  - dlthub
+  - platform
+  dependencies:
+  - init
+  workflow_entry_skill: setup-runtime
+  installed_at: '2026-05-18T08:04:43.138169+00:00'
+  agent: claude
+  files:
+    .claude/skills/debug-deployment/SKILL.md:
+      sha3_256: 07f8de5e1bc979238a1cdaf55e84061f4df164622e099d1e5d75536f80572416
+    .claude/skills/deploy-workspace/SKILL.md:
+      sha3_256: b4d5abff6758498bdc4a30f3fce79749430e9ea810738d734fc505bb14087653
+    .claude/skills/deploy-workspace/advanced-patterns.md:
+      sha3_256: 39aec663eb5957bf57f16f080642448b82874004f5cdd75d4249b429207731f7
+    .claude/skills/deploy-workspace/scheduling-triggers.md:
+      sha3_256: 682a5c23b95f8d8a925a328f2159210f16e975cdf29da781469a914da2dcbca2
+    .claude/skills/prepare-deployment/SKILL.md:
+      sha3_256: d7c7296acd9133d87b7ec72ac6cbc5345b288334ac46c3079eeea297d8503b47
+    .claude/skills/prepare-deployment/check_destination.py:
+      sha3_256: 34ff49ae54a875f34f7900612d76b31d7aaf00926cc80c40d689474af4d447ec
+    .claude/skills/prepare-deployment/deployment-module.md:
+      sha3_256: 9a5d60609e5093a714739c2a46aaa0ae6ab09f345c8a3225b11a975cdb4cdd31
+    .claude/skills/setup-runtime/SKILL.md:
+      sha3_256: fa97ce06f8dd27c3a165a368dc19bb4a709181c0aa6f1311d71ddafe42cde79f
+    .claude/rules/dlthub-runtime-profiles.md:
+      sha3_256: b950ff394581954213e3d6fd36ba965f31bfddc5f8297dd81dfcd7e12315f328
+    .claude/rules/dlthub-runtime-workflow.md:
+      sha3_256: 5c84141155147f1890639272b5b1c462073b3eefc8d0b46c68ecaf87c338a71d
+  name: dlthub-runtime
+rest-api-pipeline:
+  version: 0.1.0
+  description: 'Build REST API pipelines with dlt: scope, debug and validate data'
+  tags:
+  - dlt
+  - etl
+  - data-pipeline
+  - python
+  dependencies:
+  - init
+  workflow_entry_skill: find-source
+  installed_at: '2026-05-18T08:04:44.028694+00:00'
+  agent: claude
+  files:
+    .claude/skills/adjust-endpoint/SKILL.md:
+      sha3_256: 19a5bea2699788d3a8796d6651ce908d3a173a6a76e7fd7b15bcff4827ab3ce9
+    .claude/skills/create-rest-api-pipeline/SKILL.md:
+      sha3_256: df0bfc630024d13665f8995d34b4716479ddd8d5b874650a21cf3546ccfb78f2
+    .claude/skills/debug-pipeline/SKILL.md:
+      sha3_256: c4132cb2eb47f6cff3b0388a85e95e47633050a6e8148f3062b3b279c808be0d
+    .claude/skills/find-source/SKILL.md:
+      sha3_256: 79565aa6a261898babdfe85442ed9405cc3ddd746178bbd381122a8eb61e7491
+    .claude/skills/new-endpoint/SKILL.md:
+      sha3_256: 6562b4ef49d0934550904b8b1b0e29c0ed5cb3d6ab9caa453cad68f9c8bb209e
+    .claude/skills/validate-data/SKILL.md:
+      sha3_256: f05396405ad5981a912246e0747a5de51d70f69f840bf42a20d4ae9cc466a4ca
+    .claude/skills/view-data/SKILL.md:
+      sha3_256: ea09b06c142f7ddd8a861afa035b79a853138eb370ae214f7f1b62eae149a6e6
+    .claude/rules/rest-api-pipeline-workflow.md:
+      sha3_256: 97e19deaba79305f9de4b11a319a26880a4c87c997f02d8a14d5538aa5bc53c5
+  name: rest-api-pipeline
+transformations:
+  version: 0.1.0
+  description: Transform raw dlt pipeline data into a Canonical Data Model. Build
+    an ontology, design a CDM with Kimball dimensional modeling, write @dlt.hub.transformation
+    functions, and validate the output.
+  tags:
+  - dlt
+  - transformation
+  - cdm
+  - kimball
+  - ibis
+  - dimensional-modeling
+  dependencies:
+  - init
+  workflow_entry_skill: annotate-sources
+  installed_at: '2026-05-18T08:04:44.881674+00:00'
+  agent: claude
+  files:
+    .claude/skills/annotate-sources/SKILL.md:
+      sha3_256: 98316fda6abfb9b89b1eec865a0d9bcf206ea211fd2610033ca37c839ace2bc9
+    .claude/skills/create-ontology/SKILL.md:
+      sha3_256: 1292232346aa3a31f78652d2b188c83d4f4df77b055d673be8dc4e0eb5c1c541
+    .claude/skills/create-transformation/SKILL.md:
+      sha3_256: 1db3d95cc9846bf1e38fd1fcc2d9d1c01264a88f22e2e7a590adede98ebfbc05
+    .claude/skills/generate-cdm/SKILL.md:
+      sha3_256: 6f4e7ac39c43f2af30bcce41976a844d97ecb996bd1dca74956eee72dd41c003
+    .claude/rules/transformations-workflow.md:
+      sha3_256: a7957182f764f6f3167117d0d1e52d72c075dba0b2e239c0010b97a6f3b21a3f

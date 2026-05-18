@@ -10,8 +10,8 @@ from .errors import ScaffoldError
 SCAFFOLDS_DIR = Path(__file__).parent / "scaffolds"
 
 
-def copy_scaffold(project_dir: Path, *, scaffold: str) -> None:
-    """Copy the bundled scaffold ``scaffold`` into ``project_dir``."""
+def validate_scaffold_target(project_dir: Path, *, scaffold: str) -> None:
+    """Check that the scaffold exists and the target directory is writable. No writes."""
     source = SCAFFOLDS_DIR / scaffold
     if not source.is_dir():
         available = ", ".join(sorted(p.name for p in SCAFFOLDS_DIR.iterdir() if p.is_dir()))
@@ -24,6 +24,11 @@ def copy_scaffold(project_dir: Path, *, scaffold: str) -> None:
             f"Target directory already exists and is not empty: {project_dir}"
         )
 
+
+def copy_scaffold(project_dir: Path, *, scaffold: str) -> None:
+    """Copy the bundled scaffold ``scaffold`` into ``project_dir``."""
+    validate_scaffold_target(project_dir, scaffold=scaffold)
+    source = SCAFFOLDS_DIR / scaffold
     project_dir.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, project_dir, ignore=_ignore_runtime, dirs_exist_ok=True)
 

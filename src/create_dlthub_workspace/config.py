@@ -25,10 +25,3 @@ TOOLKITS = (
     "rest-api-pipeline",
     "transformations",
 )
-
-TIPS = (
-    ("/init-workspace", "set up a fresh Python environment"),
-    ("/find-source", "load data from a REST API"),
-    ("/explore-data", "query and explore loaded tables"),
-    ("/setup-runtime", "deploy your pipeline to dltHub"),
-)
