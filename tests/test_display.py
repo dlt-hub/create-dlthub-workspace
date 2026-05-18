@@ -20,11 +20,14 @@ from create_dlthub_workspace.display import (
 
 class PrintNextStepsTests(unittest.TestCase):
     def test_starter_scaffold_renders_and_includes_cd_hint(self) -> None:
+        project_dir = Path("/tmp/my_workspace")
         with console.capture() as cap:
-            print_next_steps(Path("/tmp/my_workspace"), scaffold="starter_workspace")
+            print_next_steps(project_dir, scaffold="starter_workspace")
         output = cap.get()
 
-        self.assertIn("/tmp/my_workspace", output)
+        # str(path) so the assertion matches the platform's separator
+        # (Windows renders backslashes, POSIX renders forward slashes).
+        self.assertIn(str(project_dir), output)
         self.assertIn("uv run dlthub run load_breweries", output)
 
     def test_minimal_scaffold_renders_with_its_pipeline_command(self) -> None:
