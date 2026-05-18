@@ -28,13 +28,16 @@ TOOLKITS = (
     "transformations",
 )
 
-# Pin for the dlt-hub/dlthub-ai-workbench repo used by `make generate-ai`.
-# - None  -> use the upstream default branch (today: master). Fine for dev.
-# - "<sha>" or "<branch>" -> pass through to `dlthub ai init --branch ...`.
-# Set this to a commit SHA before cutting a release so the bundled output
-# is reproducible. The workbench repo has no tags today, so SHA is the
-# only stable handle.
-WORKBENCH_REF: str | None = None
+# Pinned commit of dlt-hub/dlthub-ai-workbench that `make generate-ai` fetches.
+# Setting a SHA keeps generation reproducible across machines and over time:
+# CI's `check-ai` step compares the committed scaffold against whatever this
+# ref produces, so any drift becomes a deliberate two-line PR (bump SHA +
+# commit regenerated scaffold).
+#
+# To bump: pick a new SHA (the workbench repo has no tags today), update the
+# constant below, run `make generate-ai`, commit the resulting scaffold diff
+# alongside this change.
+WORKBENCH_REF: str | None = "2e2a3695b6fb039d2a4638a0f7e23751fe33b16d"
 
 
 @dataclass(frozen=True)

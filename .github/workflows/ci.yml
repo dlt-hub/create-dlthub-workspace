@@ -78,3 +78,27 @@ jobs:
 
       - name: Build wheel
         run: uv build
+
+  # Drift guard: regenerates the bundled AI workbench files from the pinned
+  # WORKBENCH_REF and fails if the result doesn't match what's committed.
+  # Runs on one platform only — the output is platform-independent and we
+  # don't need to triple the CI time.
+  check-ai:
+    name: AI workbench drift
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --frozen
+
+      - name: Regenerate + diff
+        run: make check-ai

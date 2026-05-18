@@ -14,6 +14,27 @@ from .scaffold import copy_scaffold
 from .uv import execute_uv_install, run_uv_sync
 
 
+def _ensure_utf8_io_on_windows() -> None:
+    """Force UTF-8 on stdio when running on Windows.
+
+    The banner uses full-block characters (`█`, U+2588) that can't be encoded
+    by Windows' default cp1252 codec. This bites in two places: legacy
+    cmd.exe terminals, and when stdout is piped (subprocess capture, CI
+    log collection). Reconfiguring before rich.Console writes anything keeps
+    the output portable.
+    """
+    if sys.platform != "win32":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8")
+        except (OSError, ValueError):
+            pass
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="create-dlthub-workspace",
@@ -55,6 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _ensure_utf8_io_on_windows()
     parser = build_parser()
     args = parser.parse_args(argv)
 
