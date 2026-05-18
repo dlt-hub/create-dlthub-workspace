@@ -71,7 +71,7 @@ def build_plan(args: argparse.Namespace) -> WorkspacePlan:
             stage = WorkspaceStage.THROUGH_UV_INSTALL
 
     if stage == WorkspaceStage.FULL:
-        agents = tuple(args.agent or ([RECOMMENDED.agent] if args.yes else choose_agents()))
+        agents = tuple(args.agent or (RECOMMENDED.agents if args.yes else choose_agents()))
         if not agents:
             raise WorkspaceError("At least one AI workbench must be selected.")
     else:

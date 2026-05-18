@@ -32,14 +32,14 @@ def build_parser() -> argparse.ArgumentParser:
         choices=AGENTS,
         help=(
             "AI workbench to initialize. Pass multiple times to initialize several. "
-            f"Defaults to the recommended {RECOMMENDED.agent!r} in non-interactive mode."
+            "Defaults to all available workbenches in non-interactive mode."
         ),
     )
     parser.add_argument(
         "--yes",
         "-y",
         action="store_true",
-        help="Run the recommended path (starter scaffold, install uv, uv sync, claude).",
+        help="Run the recommended path (starter scaffold, install uv, uv sync, all AI workbenches).",
     )
     parser.add_argument(
         "--verbose",
