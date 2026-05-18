@@ -26,16 +26,34 @@ dev = [
 ]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP"]
+extend-select = ["PLC0415"]
 
 [tool.mypy]
 python_version = "3.10"
-strict = true
+ignore_missing_imports = false
+strict_optional = true
+warn_redundant_casts = true
+disallow_any_generics = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_return_any = true
+namespace_packages = true
+warn_unused_ignores = true
+show_error_codes = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "beaupy.*"
+ignore_missing_imports = true
 
 [project.scripts]
 create-dlthub-workspace = "create_dlthub_workspace.cli:main"
