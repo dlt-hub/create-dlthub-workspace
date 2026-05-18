@@ -11,3 +11,6 @@ build/
 **/.dlt/data/
 **/.dlt/state/
 **/_local/
+
+# Example workspaces created for testing
+examples/
