@@ -8,7 +8,7 @@ dependency setup, and bundled dltHub AI workbench files.
 `uvx` is the recommended way to run the CLI:
 
 ```bash
-uvx dlthub-start my-workspace
+uvx dlthub-start@latest my-workspace
 ```
 
 If `uvx` is not available yet, use `pipx run` instead:
@@ -23,7 +23,7 @@ to install it if needed, offers to run `uv sync`, and prints next steps.
 For a non-interactive setup with the recommended defaults:
 
 ```bash
-uvx dlthub-start my-workspace --yes
+uvx dlthub-start@latest my-workspace --yes
 cd my-workspace
 uv run dlthub run load_breweries
 uv run dlthub show
@@ -45,7 +45,7 @@ install `uv` yourself, use the official
 ## Usage
 
 ```bash
-uvx dlthub-start <project-dir> [options]
+uvx dlthub-start@latest <project-dir> [options]
 ```
 
 Common options:
@@ -64,10 +64,10 @@ Common options:
 Examples:
 
 ```bash
-uvx dlthub-start my-workspace --yes
-uvx dlthub-start my-workspace --scaffold minimal_workspace
-uvx dlthub-start my-workspace --agent claude --agent codex
-uvx dlthub-start my-workspace --yes --skip-uv-sync
+uvx dlthub-start@latest my-workspace --yes
+uvx dlthub-start@latest my-workspace --scaffold minimal_workspace
+uvx dlthub-start@latest my-workspace --agent claude --agent codex
+uvx dlthub-start@latest my-workspace --yes --skip-uv-sync
 ```
 
 ## Scaffolds
@@ -141,7 +141,7 @@ non-empty workspace directory.
 Re-run with `--verbose` to see subprocess output:
 
 ```bash
-uvx dlthub-start my-workspace --yes --verbose
+uvx dlthub-start@latest my-workspace --yes --verbose
 ```
 
 If the scaffold was created successfully, you can also enter the workspace and
