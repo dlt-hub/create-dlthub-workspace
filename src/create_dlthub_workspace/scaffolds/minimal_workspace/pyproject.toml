@@ -5,6 +5,7 @@ description = "Minimal dltHub workspace"
 requires-python = ">=3.12"
 dependencies = [
     "dlt[hub]==1.27.0a0",
+    "dlthub[mcp]==0.27.0a0",
     "duckdb<1.4.3",
 ]
 
