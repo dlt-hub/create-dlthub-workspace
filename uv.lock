@@ -71,7 +71,7 @@ wheels = [
 ]
 
 [[package]]
-name = "create-dlthub-workspace"
+name = "dlthub-start"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
