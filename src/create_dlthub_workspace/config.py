@@ -10,12 +10,12 @@ SCAFFOLDS = (
     (
         "starter_workspace",
         "Starter",
-        "Ingestion, transformations, data quality, and notebooks.",
+        "the full local dltHub workspace experience: agentic ingestion, transformations, data quality, and notebooks.",
     ),
     (
         "minimal_workspace",
         "Minimal",
-        "Bare workspace with a single placeholder pipeline.",
+        "a local dltHub workspace with a single dlt pipeline: for a quick look how dltHub Pro works.",
     ),
 )
 

@@ -6,6 +6,7 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
+from . import strings
 from .errors import ScaffoldError
 
 SCAFFOLDS_DIR = Path(__file__).parent / "scaffolds"
@@ -31,7 +32,7 @@ INSTALL_TIME_SENTINEL = "1970-01-01T00:00:00+00:00"
 def validate_target_dir(project_dir: Path) -> None:
     """Refuse to write into a non-empty existing directory. No filesystem writes."""
     if project_dir.exists() and any(project_dir.iterdir()):
-        raise ScaffoldError(f"Target directory already exists and is not empty: {project_dir}")
+        raise ScaffoldError(strings.ERROR_TARGET_NOT_EMPTY.format(project_dir=project_dir))
 
 
 def validate_scaffold_name(scaffold: str) -> None:
@@ -39,7 +40,12 @@ def validate_scaffold_name(scaffold: str) -> None:
     source = SCAFFOLDS_DIR / scaffold
     if not source.is_dir():
         available = ", ".join(sorted(p.name for p in SCAFFOLDS_DIR.iterdir() if p.is_dir()))
-        raise ScaffoldError(f"Unknown scaffold {scaffold!r}. Available: {available or '(none)'}")
+        raise ScaffoldError(
+            strings.ERROR_UNKNOWN_SCAFFOLD.format(
+                scaffold=scaffold,
+                available=available or strings.HINT_NONE,
+            )
+        )
 
 
 def validate_scaffold_target(project_dir: Path, *, scaffold: str) -> None:

@@ -6,6 +6,7 @@ import re
 import sys
 from pathlib import Path
 
+from . import strings
 from .errors import ScaffoldError
 
 if sys.version_info >= (3, 11):
@@ -25,7 +26,7 @@ def apply_workspace_name(project_dir: Path, workspace_name: str) -> str:
     try:
         data = tomllib.loads(content)
     except tomllib.TOMLDecodeError as exc:
-        raise ScaffoldError(f"Could not parse generated pyproject.toml: {exc}") from exc
+        raise ScaffoldError(strings.ERROR_PARSE_PYPROJECT.format(reason=exc)) from exc
 
     if "project" not in data:
         return package_name

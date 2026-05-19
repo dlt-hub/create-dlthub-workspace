@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+from . import strings
 from .config import DEFAULT_PROJECT_NAME, RECOMMENDED
 from .errors import WorkspaceError
 from .prompts import choose_agents, choose_project_name, choose_scaffold, confirm
@@ -57,7 +58,7 @@ def build_plan(args: argparse.Namespace) -> WorkspacePlan:
 
     agents = tuple(args.agent or (RECOMMENDED.agents if args.yes else choose_agents()))
     if not agents:
-        raise WorkspaceError("At least one AI workbench must be selected.")
+        raise WorkspaceError(strings.ERROR_NO_AGENTS)
 
     uv_executable = find_uv()
     install_uv = False
@@ -65,7 +66,7 @@ def build_plan(args: argparse.Namespace) -> WorkspacePlan:
 
     if uv_executable is None:
         if args.yes or confirm(
-            "uv is required but was not found. Install uv now?",
+            strings.PROMPT_INSTALL_UV,
             recommended=RECOMMENDED.install_uv,
         ):
             install_uv = True
@@ -76,7 +77,7 @@ def build_plan(args: argparse.Namespace) -> WorkspacePlan:
         if args.skip_uv_sync or (
             not args.yes
             and not confirm(
-                "Install workspace dependencies with `uv sync`?",
+                strings.PROMPT_RUN_UV_SYNC,
                 recommended=RECOMMENDED.run_uv_sync,
             )
         ):

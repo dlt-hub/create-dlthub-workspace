@@ -7,13 +7,15 @@ from typing import cast
 import beaupy
 from rich.prompt import Prompt
 
+from . import strings
 from .config import AGENTS, DEFAULT_PROJECT_NAME, RECOMMENDED, SCAFFOLDS
 from .display import console
 
 CURSOR = "❯"
 CURSOR_STYLE = "#59C1D5"
 TICK_CHAR = "●"
-RECOMMENDED_SUFFIX = " [dim](recommended)[/dim]"
+# Re-exported for tests + back-compat. Canonical value lives in strings.py.
+RECOMMENDED_SUFFIX = strings.HINT_RECOMMENDED_SUFFIX
 
 
 def _echo_selection(value: str) -> None:
@@ -29,7 +31,7 @@ def choose_project_name(default: str = DEFAULT_PROJECT_NAME) -> str:
     """
     console.print()  # spacer to match the visual rhythm of the other prompts
     name = Prompt.ask(
-        "[bold]What should we call the workspace?[/bold]",
+        strings.PROMPT_PROJECT_NAME,
         default=default,
         console=console,
         show_default=True,
@@ -49,7 +51,7 @@ def choose_scaffold(default: str = RECOMMENDED.scaffold) -> str:
     ]
     default_index = keys.index(default) if default in keys else 0
 
-    console.print("\n[bold]Choose a scaffold[/bold] [dim](↑/↓ to move, enter to confirm)[/dim]")
+    console.print(strings.PROMPT_SCAFFOLD_HEADER)
     # beaupy ships no type stubs, so mypy sees the result as Any; cast narrows it
     # to the concrete branch we're using (return_index=True yields an int).
     index = cast(
@@ -75,10 +77,7 @@ def choose_agents() -> list[str]:
     """
     agents = list(AGENTS)
 
-    console.print(
-        "\n[bold]Choose AI workbench(es)[/bold] "
-        "[dim](recommended: keep them all selected; space to toggle, enter to confirm)[/dim]"
-    )
+    console.print(strings.PROMPT_AGENTS_HEADER)
     selected = cast(
         list[str],
         beaupy.select_multiple(

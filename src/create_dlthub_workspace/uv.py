@@ -9,6 +9,7 @@ import subprocess
 import urllib.request
 from pathlib import Path
 
+from . import strings
 from .errors import UvError
 
 UV_UNIX_INSTALLER = "https://astral.sh/uv/install.sh"
@@ -34,7 +35,7 @@ def execute_uv_install(*, verbose: bool = False) -> str:
     if uv:
         return uv
 
-    raise UvError("uv was installed, but it is not available on PATH yet. Open a new terminal and try again.")
+    raise UvError(strings.ERROR_UV_NOT_ON_PATH)
 
 
 def install_uv(*, verbose: bool = False) -> None:
@@ -67,7 +68,7 @@ def _run_unix_installer(*, verbose: bool = False) -> None:
         with urllib.request.urlopen(UV_UNIX_INSTALLER, timeout=30) as response:
             script = response.read()
     except OSError as exc:
-        raise UvError(f"Could not download uv installer: {exc}") from exc
+        raise UvError(strings.ERROR_UV_INSTALLER_FETCH.format(reason=exc)) from exc
 
     _run(["sh"], input_bytes=script, verbose=verbose)
 
@@ -75,13 +76,13 @@ def _run_unix_installer(*, verbose: bool = False) -> None:
 def _run_windows_installer(*, verbose: bool = False) -> None:
     powershell = shutil.which("powershell") or shutil.which("pwsh")
     if not powershell:
-        raise UvError("PowerShell is required to install uv on Windows.")
+        raise UvError(strings.ERROR_UV_NEEDS_POWERSHELL)
 
     try:
         with urllib.request.urlopen(UV_WINDOWS_INSTALLER, timeout=30) as response:
             script = response.read()
     except OSError as exc:
-        raise UvError(f"Could not download uv installer: {exc}") from exc
+        raise UvError(strings.ERROR_UV_INSTALLER_FETCH.format(reason=exc)) from exc
 
     _run(
         [powershell, "-ExecutionPolicy", "ByPass", "-Command", "-"],
@@ -108,10 +109,10 @@ def _run(
             capture_output=not verbose,
         )
     except FileNotFoundError as exc:
-        raise UvError(f"Command not found: {command[0]}") from exc
+        raise UvError(strings.ERROR_UV_COMMAND_NOT_FOUND.format(cmd=command[0])) from exc
     except subprocess.CalledProcessError as exc:
         joined = " ".join(command)
-        message = f"Command failed with exit code {exc.returncode}: {joined}"
+        message = strings.ERROR_UV_COMMAND_FAILED.format(returncode=exc.returncode, cmd=joined)
         if not verbose:
             captured = _format_captured(exc.stderr, exc.stdout)
             if captured:

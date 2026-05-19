@@ -11,25 +11,20 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.text import Text
 
+from . import strings
 from .config import VERSION
 
 console = Console()
 
 NEXT_STEPS: dict[str, tuple[tuple[str, str | None], ...]] = {
     "starter_workspace": (
-        (
-            "Run the ingestion pipeline in dltHub (transformations auto-trigger; you'll be prompted to connect/login):",
-            "uv run dlthub run load_breweries",
-        ),
-        ("Open the dltHub dashboard:", "uv run dlthub show"),
+        (strings.STEPS_LABEL_RUN_BREWERIES, strings.CMD_DLTHUB_RUN_BREWERIES),
+        (strings.STEPS_LABEL_OPEN_DASHBOARD, strings.CMD_DLTHUB_SHOW),
     ),
     "minimal_workspace": (
-        (
-            "Run the placeholder pipeline in dltHub (you'll be prompted to connect/login):",
-            "uv run dlthub run load_data",
-        ),
-        ("Open the dltHub dashboard:", "uv run dlthub show"),
-        ("Edit pipeline.py to swap the placeholder for a real source, then re-run.", None),
+        (strings.STEPS_LABEL_RUN_PLACEHOLDER, strings.CMD_DLTHUB_RUN_LOAD_DATA),
+        (strings.STEPS_LABEL_OPEN_DASHBOARD, strings.CMD_DLTHUB_SHOW),
+        (strings.STEPS_LABEL_EDIT_PIPELINE, None),
     ),
 }
 
@@ -219,12 +214,12 @@ def _build_logo() -> Text:
         for text, style in row:
             logo.append(text, style=style)
         logo.append("\n")
-    logo.append("\n  Scaffold a dltHub workspace", style="dim")
+    logo.append(f"\n  {strings.HINT_BANNER_TAGLINE}", style="dim")
     return logo
 
 
 def print_banner() -> None:
-    title = Text.from_markup(f"dlthub-start v{VERSION} [bold #C6D300](beta)[/bold #C6D300]")
+    title = Text.from_markup(strings.TITLE_BANNER.format(version=VERSION))
     console.print(
         Panel(
             _build_logo(),
@@ -242,36 +237,36 @@ def print_next_steps(project_dir: Path, *, scaffold: str, agents: tuple[str, ...
     # Every panel starts the user at "go to the directory" so the rest of the
     # numbered commands can be copy-pasted without context-switching.
     steps: tuple[tuple[str, str | None], ...] = (
-        ("Change into the workspace:", f"cd {project_dir}"),
+        (strings.STEPS_LABEL_CD, strings.CMD_CD.format(project_dir=project_dir)),
         *NEXT_STEPS[scaffold],
     )
 
     body = Text()
-    body.append("Created\n\n", style="bold #C6D300")
+    body.append(f"{strings.LABEL_CREATED}\n\n", style="bold #C6D300")
     for index, entry in enumerate(created_tree):
         branch = "`-- " if index == len(created_tree) - 1 else "|-- "
         body.append(f"  {branch}{entry}\n", style="dim")
     if agents:
-        body.append("  AI workbenches: ", style="dim")
+        body.append(f"  {strings.LABEL_AI_WORKBENCHES} ", style="dim")
         body.append(", ".join(agents), style="bold #59C1D5")
         body.append("\n")
     body.append("\n")
-    body.append("What to try next\n\n", style="bold #C6D300")
+    body.append(f"{strings.LABEL_WHAT_TO_TRY}\n\n", style="bold #C6D300")
     for index, (label, command) in enumerate(steps, start=1):
         body.append(f"  {index}. {label}\n", style="dim")
         if command is not None:
             body.append(f"     {command}\n", style="bold #59C1D5")
         body.append("\n")
-    body.append("  Docs: ", style="dim")
+    body.append(f"  {strings.LABEL_DOCS} ", style="dim")
     body.append(
-        "github.com/dlt-hub/dlthub-ai-workbench",
-        style="underline #59C1D5 link https://github.com/dlt-hub/dlthub-ai-workbench/blob/master/README.md",
+        strings.LINK_DOCS_LABEL,
+        style=f"underline #59C1D5 link {strings.LINK_DOCS_URL}",
     )
 
     console.print(
         Panel(
             body,
-            title="You're all set",
+            title=strings.TITLE_NEXT_STEPS_PANEL,
             title_align="left",
             border_style="#C6D300",
             padding=(1, 2),
@@ -284,27 +279,27 @@ def print_resume_steps(project_dir: Path, *, uv_installed: bool) -> None:
     workspace (vendored into the scaffold), so the only thing the user still
     needs to do is finish the uv setup."""
     steps: list[tuple[str, str]] = [
-        ("Change into the workspace:", f"cd {project_dir}"),
+        (strings.STEPS_LABEL_CD, strings.CMD_CD.format(project_dir=project_dir)),
     ]
     if not uv_installed:
-        steps.append(("Install uv:", "curl -LsSf https://astral.sh/uv/install.sh | sh"))
-    steps.append(("Install workspace dependencies:", "uv sync"))
+        steps.append((strings.STEPS_LABEL_INSTALL_UV, strings.CMD_INSTALL_UV_UNIX))
+    steps.append((strings.STEPS_LABEL_INSTALL_DEPS, strings.CMD_UV_SYNC))
 
     body = Text()
-    body.append("Finish setup\n\n", style="bold #C6D300")
+    body.append(f"{strings.LABEL_FINISH_SETUP}\n\n", style="bold #C6D300")
     for index, (label, command) in enumerate(steps, start=1):
         body.append(f"  {index}. {label}\n", style="dim")
         body.append(f"     {command}\n\n", style="bold #59C1D5")
-    body.append("  Docs: ", style="dim")
+    body.append(f"  {strings.LABEL_DOCS} ", style="dim")
     body.append(
-        "github.com/dlt-hub/dlthub-ai-workbench",
-        style="underline #59C1D5 link https://github.com/dlt-hub/dlthub-ai-workbench/blob/master/README.md",
+        strings.LINK_DOCS_LABEL,
+        style=f"underline #59C1D5 link {strings.LINK_DOCS_URL}",
     )
 
     console.print(
         Panel(
             body,
-            title="Almost there",
+            title=strings.TITLE_RESUME_PANEL,
             title_align="left",
             border_style="#C6D300",
             padding=(1, 2),
