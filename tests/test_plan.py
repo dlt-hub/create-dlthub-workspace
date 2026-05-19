@@ -1,8 +1,9 @@
 """Tests for build_plan — the decision tree that resolves CLI args + prompts
 into a frozen WorkspacePlan.
 
-Mocks every external dependency (find_uv, choose_scaffold, choose_agents,
-confirm, validate_scaffold_target) so each test is fast and deterministic.
+Mocks every external dependency (find_uv, choose_project_name, choose_scaffold,
+choose_agents, confirm, validate_target_dir, validate_scaffold_name) so each
+test is fast and deterministic.
 """
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ import argparse
 import unittest
 from unittest.mock import MagicMock, patch
 
-from create_dlthub_workspace.config import RECOMMENDED
+from create_dlthub_workspace.config import DEFAULT_PROJECT_NAME, RECOMMENDED
 from create_dlthub_workspace.errors import ScaffoldError, WorkspaceError
 from create_dlthub_workspace.plan import WorkspaceStage, build_plan
 
@@ -36,7 +37,7 @@ class BuildPlanYesModeTests(unittest.TestCase):
     @patch("create_dlthub_workspace.plan.choose_agents")
     @patch("create_dlthub_workspace.plan.choose_scaffold")
     @patch("create_dlthub_workspace.plan.confirm")
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_uv_present_produces_full_recommended_plan(
         self,
@@ -58,7 +59,7 @@ class BuildPlanYesModeTests(unittest.TestCase):
         choose_agents.assert_not_called()
 
     @patch("create_dlthub_workspace.plan.confirm")
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value=None)
     def test_uv_absent_marks_install_uv_without_prompting(
         self,
@@ -73,7 +74,7 @@ class BuildPlanYesModeTests(unittest.TestCase):
         self.assertIsNone(plan.uv_executable)
         confirm.assert_not_called()
 
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_skip_uv_sync_forces_through_uv_install_stage(
         self,
@@ -100,7 +101,7 @@ class BuildPlanInteractiveTests(unittest.TestCase):
         return_value="starter_workspace",
     )
     @patch("create_dlthub_workspace.plan.confirm", return_value=True)
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_uv_present_sync_confirmed_runs_full(
         self,
@@ -126,7 +127,7 @@ class BuildPlanInteractiveTests(unittest.TestCase):
         return_value="starter_workspace",
     )
     @patch("create_dlthub_workspace.plan.confirm", return_value=False)
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value=None)
     def test_uv_install_declined_stops_at_scaffold_only(
         self,
@@ -151,7 +152,7 @@ class BuildPlanInteractiveTests(unittest.TestCase):
         return_value="starter_workspace",
     )
     @patch("create_dlthub_workspace.plan.confirm")
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_sync_declined_stops_at_through_uv_install(
         self,
@@ -182,7 +183,7 @@ class BuildPlanInteractiveTests(unittest.TestCase):
         return_value="starter_workspace",
     )
     @patch("create_dlthub_workspace.plan.confirm", return_value=True)
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value=None)
     def test_uv_install_accepted_then_sync_accepted_runs_full(
         self,
@@ -206,7 +207,7 @@ class BuildPlanArgOverrideTests(unittest.TestCase):
     @patch("create_dlthub_workspace.plan.choose_agents", return_value=["claude"])
     @patch("create_dlthub_workspace.plan.choose_scaffold")
     @patch("create_dlthub_workspace.plan.confirm", return_value=True)
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_scaffold_arg_skips_scaffold_prompt(
         self,
@@ -224,7 +225,7 @@ class BuildPlanArgOverrideTests(unittest.TestCase):
     @patch("create_dlthub_workspace.plan.choose_agents")
     @patch("create_dlthub_workspace.plan.choose_scaffold", return_value="starter_workspace")
     @patch("create_dlthub_workspace.plan.confirm", return_value=True)
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_agent_arg_skips_agents_prompt(
         self,
@@ -251,7 +252,7 @@ class BuildPlanFlagInteractionTests(unittest.TestCase):
     @patch("create_dlthub_workspace.plan.choose_agents", return_value=["claude"])
     @patch("create_dlthub_workspace.plan.choose_scaffold", return_value="starter_workspace")
     @patch("create_dlthub_workspace.plan.confirm")
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_skip_uv_sync_short_circuits_the_sync_prompt(
         self,
@@ -267,7 +268,7 @@ class BuildPlanFlagInteractionTests(unittest.TestCase):
         self.assertEqual(plan.stage, WorkspaceStage.THROUGH_UV_INSTALL)
         confirm.assert_not_called()
 
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_explicit_agent_honored_even_when_stage_skips_uv_sync(
         self,
@@ -286,26 +287,31 @@ class BuildPlanFlagInteractionTests(unittest.TestCase):
 class BuildPlanValidationTests(unittest.TestCase):
     """Failures and edge cases."""
 
+    @patch("create_dlthub_workspace.plan.choose_scaffold")
     @patch("create_dlthub_workspace.plan.find_uv")
     @patch(
-        "create_dlthub_workspace.plan.validate_scaffold_target",
-        side_effect=ScaffoldError("Unknown scaffold 'x'"),
+        "create_dlthub_workspace.plan.validate_target_dir",
+        side_effect=ScaffoldError("Target directory already exists"),
     )
-    def test_scaffold_validation_fails_before_uv_detection(
+    def test_target_dir_conflict_fails_before_other_prompts(
         self,
         _validate: MagicMock,
         find_uv: MagicMock,
+        choose_scaffold: MagicMock,
     ) -> None:
+        # Target-dir validation runs first now; a name conflict short-circuits
+        # the rest of planning before the user is asked to choose scaffold or
+        # agents, and before uv detection runs.
         with self.assertRaises(ScaffoldError):
-            build_plan(_make_args(scaffold="starter_workspace", yes=True))
+            build_plan(_make_args(yes=True))
 
-        # Validation short-circuits the rest of planning, including uv detection.
         find_uv.assert_not_called()
+        choose_scaffold.assert_not_called()
 
     @patch("create_dlthub_workspace.plan.choose_agents", return_value=[])
     @patch("create_dlthub_workspace.plan.choose_scaffold", return_value="starter_workspace")
     @patch("create_dlthub_workspace.plan.confirm", return_value=True)
-    @patch("create_dlthub_workspace.plan.validate_scaffold_target")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
     @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
     def test_empty_agent_selection_raises_workspace_error(
         self,
@@ -317,6 +323,61 @@ class BuildPlanValidationTests(unittest.TestCase):
     ) -> None:
         with self.assertRaises(WorkspaceError):
             build_plan(_make_args())
+
+
+class BuildPlanProjectNameTests(unittest.TestCase):
+    """Project name resolution: explicit arg vs --yes default vs interactive prompt."""
+
+    @patch("create_dlthub_workspace.plan.choose_project_name")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
+    @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
+    def test_yes_without_project_dir_uses_default_name(
+        self,
+        _find_uv: MagicMock,
+        _validate: MagicMock,
+        choose_project_name: MagicMock,
+    ) -> None:
+        plan = build_plan(_make_args(project_dir=None, yes=True))
+
+        # The default is used silently — no prompt fires.
+        choose_project_name.assert_not_called()
+        self.assertEqual(plan.project_dir.name, DEFAULT_PROJECT_NAME)
+
+    @patch("create_dlthub_workspace.plan.choose_agents", return_value=["claude"])
+    @patch("create_dlthub_workspace.plan.choose_scaffold", return_value="starter_workspace")
+    @patch("create_dlthub_workspace.plan.choose_project_name", return_value="my-custom-workspace")
+    @patch("create_dlthub_workspace.plan.confirm", return_value=True)
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
+    @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
+    def test_interactive_without_project_dir_prompts_for_name(
+        self,
+        _find_uv: MagicMock,
+        _validate: MagicMock,
+        _confirm: MagicMock,
+        choose_project_name: MagicMock,
+        _choose_scaffold: MagicMock,
+        _choose_agents: MagicMock,
+    ) -> None:
+        plan = build_plan(_make_args(project_dir=None))
+
+        choose_project_name.assert_called_once()
+        self.assertEqual(plan.project_dir.name, "my-custom-workspace")
+
+    @patch("create_dlthub_workspace.plan.choose_project_name")
+    @patch("create_dlthub_workspace.plan.validate_target_dir")
+    @patch("create_dlthub_workspace.plan.find_uv", return_value="/usr/local/bin/uv")
+    def test_explicit_project_dir_skips_prompt_and_default(
+        self,
+        _find_uv: MagicMock,
+        _validate: MagicMock,
+        choose_project_name: MagicMock,
+    ) -> None:
+        # `--yes` short-circuits scaffold/agents prompts so we don't have to
+        # mock them; the assertion is about the name path specifically.
+        plan = build_plan(_make_args(project_dir="explicit-name", yes=True))
+
+        choose_project_name.assert_not_called()
+        self.assertEqual(plan.project_dir.name, "explicit-name")
 
 
 if __name__ == "__main__":

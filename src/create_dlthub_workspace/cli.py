@@ -40,7 +40,12 @@ def build_parser() -> argparse.ArgumentParser:
         prog="dlthub-start",
         description="Scaffold a new dltHub workspace.",
     )
-    parser.add_argument("project_dir", help="Directory to create for the new workspace.")
+    parser.add_argument(
+        "project_dir",
+        nargs="?",
+        default=None,
+        help="Directory to create for the new workspace. Prompts if omitted.",
+    )
     parser.add_argument(
         "--scaffold",
         choices=[key for key, _, _ in SCAFFOLDS],

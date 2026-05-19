@@ -13,6 +13,8 @@ from create_dlthub_workspace.scaffold import (
     _drop_unselected_agent_entries,
     _stamp_install_time,
     copy_scaffold,
+    validate_scaffold_name,
+    validate_target_dir,
 )
 
 
@@ -175,6 +177,42 @@ class StampInstallTimeTests(unittest.TestCase):
             _stamp_install_time(project_dir)
 
             self.assertEqual(manifest.read_text(encoding="utf-8"), already_stamped)
+
+
+class ValidateTargetDirTests(unittest.TestCase):
+    """Direct tests for the target-directory check that gates copy_scaffold."""
+
+    def test_raises_when_dir_exists_and_is_non_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir) / "occupied"
+            project_dir.mkdir()
+            (project_dir / "existing.txt").write_text("hi", encoding="utf-8")
+
+            with self.assertRaises(ScaffoldError):
+                validate_target_dir(project_dir)
+
+    def test_passes_when_dir_does_not_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir) / "not_yet_created"
+            validate_target_dir(project_dir)  # must not raise
+
+    def test_passes_when_dir_exists_but_is_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir) / "empty_dir"
+            project_dir.mkdir()
+            validate_target_dir(project_dir)  # must not raise
+
+
+class ValidateScaffoldNameTests(unittest.TestCase):
+    """Direct tests for scaffold-name validation."""
+
+    def test_raises_for_unknown_scaffold(self) -> None:
+        with self.assertRaises(ScaffoldError):
+            validate_scaffold_name("does-not-exist")
+
+    def test_passes_for_bundled_scaffolds(self) -> None:
+        validate_scaffold_name("starter_workspace")  # must not raise
+        validate_scaffold_name("minimal_workspace")  # must not raise
 
 
 class ScaffoldsDirTests(unittest.TestCase):

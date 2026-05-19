@@ -8,13 +8,13 @@ dependency setup, and bundled dltHub AI workbench files.
 `uvx` is the recommended way to run the CLI:
 
 ```bash
-uvx dlthub-start my-project
+uvx dlthub-start my-workspace
 ```
 
 If `uvx` is not available yet, use `pipx run` instead:
 
 ```bash
-pipx run dlthub-start my-project
+pipx run dlthub-start my-workspace
 ```
 
 The CLI prompts for a scaffold and AI workbench files, checks for `uv`, offers
@@ -23,8 +23,8 @@ to install it if needed, offers to run `uv sync`, and prints next steps.
 For a non-interactive setup with the recommended defaults:
 
 ```bash
-uvx dlthub-start my-project --yes
-cd my-project
+uvx dlthub-start my-workspace --yes
+cd my-workspace
 uv run dlthub run load_breweries
 uv run dlthub show
 ```
@@ -64,10 +64,10 @@ Common options:
 Examples:
 
 ```bash
-uvx dlthub-start my-project --yes
-uvx dlthub-start my-project --scaffold minimal_workspace
-uvx dlthub-start my-project --agent claude --agent codex
-uvx dlthub-start my-project --yes --skip-uv-sync
+uvx dlthub-start my-workspace --yes
+uvx dlthub-start my-workspace --scaffold minimal_workspace
+uvx dlthub-start my-workspace --agent claude --agent codex
+uvx dlthub-start my-workspace --yes --skip-uv-sync
 ```
 
 ## Scaffolds
@@ -82,7 +82,7 @@ uvx dlthub-start my-project --yes --skip-uv-sync
 The starter scaffold creates a workspace shaped roughly like this:
 
 ```text
-my-project/
+my-workspace/
 |-- pyproject.toml
 |-- uv.lock
 |-- starter_pipeline.py
@@ -104,7 +104,7 @@ The minimal scaffold uses `pipeline.py` instead of the starter example modules.
 For the starter scaffold:
 
 ```bash
-cd my-project
+cd my-workspace
 uv run dlthub run load_breweries
 uv run dlthub show
 ```
@@ -112,7 +112,7 @@ uv run dlthub show
 For the minimal scaffold:
 
 ```bash
-cd my-project
+cd my-workspace
 uv run dlthub run load_data
 uv run dlthub show
 ```
@@ -120,7 +120,7 @@ uv run dlthub show
 If you created the workspace with `--skip-uv-sync`, finish setup first:
 
 ```bash
-cd my-project
+cd my-workspace
 uv sync
 ```
 
@@ -128,7 +128,7 @@ uv sync
 
 `uvx: command not found`
 
-Use `pipx run dlthub-start my-project` instead. The CLI will still
+Use `pipx run dlthub-start my-workspace` instead. The CLI will still
 offer to install `uv` before syncing the generated workspace dependencies.
 
 `Target directory already exists and is not empty`
@@ -141,7 +141,7 @@ non-empty workspace directory.
 Re-run with `--verbose` to see subprocess output:
 
 ```bash
-uvx dlthub-start my-project --yes --verbose
+uvx dlthub-start my-workspace --yes --verbose
 ```
 
 If the scaffold was created successfully, you can also enter the workspace and

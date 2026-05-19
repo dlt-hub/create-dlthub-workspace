@@ -118,6 +118,32 @@ class WorkspaceCreationSlowTests(unittest.TestCase):
             self.assertTrue((ws / "uv.lock").exists(), "uv sync should have produced a lockfile")
 
 
+class WorkspaceCollisionTests(unittest.TestCase):
+    """End-to-end: two runs at the same path should produce an error on the second.
+
+    Exercises the validate_target_dir path with a real filesystem (not mocks).
+    Catches regressions where the existence check moves, gets removed, or stops
+    firing before destructive work begins.
+    """
+
+    def test_second_run_at_same_path_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ws = Path(tmpdir) / "collision_test"
+
+            with silenced():
+                first_exit = main([str(ws), "--yes", "--skip-uv-sync"])
+            self.assertEqual(first_exit, 0, "First run should succeed")
+            self.assertTrue(ws.is_dir())
+
+            with silenced():
+                second_exit = main([str(ws), "--yes", "--skip-uv-sync"])
+            self.assertEqual(
+                second_exit,
+                1,
+                "Second run against the same non-empty path should fail with WorkspaceError",
+            )
+
+
 class InstalledEntryPointTests(unittest.TestCase):
     """Spawns the actual CLI binary via subprocess to validate the installed
     entry point (`dlthub-start` on PATH). Uses --skip-uv-sync to stay fast —

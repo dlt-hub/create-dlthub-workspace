@@ -23,10 +23,10 @@ def _silenced() -> Iterator[None]:
 
 
 class BuildParserTests(unittest.TestCase):
-    def test_requires_project_dir_positional(self) -> None:
+    def test_project_dir_is_optional_positional(self) -> None:
         parser = build_parser()
-        with _silenced(), self.assertRaises(SystemExit):
-            parser.parse_args([])
+        args = parser.parse_args([])
+        self.assertIsNone(args.project_dir)
 
     def test_rejects_unknown_scaffold(self) -> None:
         parser = build_parser()

@@ -14,10 +14,10 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-from .config import RECOMMENDED
+from .config import DEFAULT_PROJECT_NAME, RECOMMENDED
 from .errors import WorkspaceError
-from .prompts import choose_agents, choose_scaffold, confirm
-from .scaffold import validate_scaffold_target
+from .prompts import choose_agents, choose_project_name, choose_scaffold, confirm
+from .scaffold import validate_scaffold_name, validate_target_dir
 from .uv import find_uv
 
 
@@ -43,16 +43,17 @@ class WorkspacePlan:
 def build_plan(args: argparse.Namespace) -> WorkspacePlan:
     """Gather every answer needed to scaffold the workspace. No filesystem writes.
 
-    Order: content questions first (scaffold + agents), then setup questions
-    (uv install + sync). AI workbenches are vendored into the scaffold, so
-    they don't depend on uv being installed — asking agents up front means
-    a user passing `--agent claude --skip-uv-sync` gets exactly what they
-    asked for instead of silently losing the agent selection.
+    Order: name -> scaffold -> agents (content questions), then uv install
+    + sync (setup questions). The target-directory check fires as soon as
+    the name is resolved so a name conflict fails fast — before the user
+    answers any other questions.
     """
-    project_dir = Path(args.project_dir).expanduser().resolve()
+    raw_name = args.project_dir or (DEFAULT_PROJECT_NAME if args.yes else choose_project_name())
+    project_dir = Path(raw_name).expanduser().resolve()
+    validate_target_dir(project_dir)
 
     scaffold = args.scaffold or (RECOMMENDED.scaffold if args.yes else choose_scaffold())
-    validate_scaffold_target(project_dir, scaffold=scaffold)
+    validate_scaffold_name(scaffold)
 
     agents = tuple(args.agent or (RECOMMENDED.agents if args.yes else choose_agents()))
     if not agents:
