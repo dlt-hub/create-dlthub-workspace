@@ -4,12 +4,8 @@ version = "0.1.0"
 description = "Minimal dltHub workspace"
 requires-python = ">=3.12"
 dependencies = [
-    "dlt[hub]==1.27.0a0",
-    "dlthub[mcp]==0.27.0a0",
+    "dlt[hub, workspace]>=1.17.0",
     "duckdb<1.4.3",
 ]
-
-[tool.uv]
-prerelease = "allow"
 
 [tool.uv.sources]
