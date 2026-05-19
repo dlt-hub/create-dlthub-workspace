@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Centralized user-facing strings into `strings.py`; refreshed onboarding and next-steps copy.
 - Onboarding guidance now always recommends `dlthub-start@latest`.
+- Bumped `WORKBENCH_REF` to `42ddb99` and refreshed the bundled AI workbench scaffold.
 
 ### Removed
 - Stripped `uv.lock` from the bundled scaffold.
