@@ -237,13 +237,15 @@ def print_banner() -> None:
 
 def print_next_steps(project_dir: Path, *, scaffold: str, agents: tuple[str, ...] = ()) -> None:
     """Post-setup tips panel. Steps are tailored to the chosen scaffold."""
-    steps = NEXT_STEPS[scaffold]
     created_tree = CREATED_TREE[scaffold]
+    # Every panel starts the user at "go to the directory" so the rest of the
+    # numbered commands can be copy-pasted without context-switching.
+    steps: tuple[tuple[str, str | None], ...] = (
+        ("Change into the workspace:", f"cd {project_dir}"),
+        *NEXT_STEPS[scaffold],
+    )
 
     body = Text()
-    body.append("  cd ", style="dim")
-    body.append(str(project_dir), style="bold #59C1D5")
-    body.append("\n\n")
     body.append("Created\n\n", style="bold #C6D300")
     for index, entry in enumerate(created_tree):
         branch = "`-- " if index == len(created_tree) - 1 else "|-- "
@@ -280,15 +282,14 @@ def print_resume_steps(project_dir: Path, *, uv_installed: bool) -> None:
     """Remaining setup commands. AI workbench files are already in the
     workspace (vendored into the scaffold), so the only thing the user still
     needs to do is finish the uv setup."""
-    steps: list[tuple[str, str]] = []
+    steps: list[tuple[str, str]] = [
+        ("Change into the workspace:", f"cd {project_dir}"),
+    ]
     if not uv_installed:
         steps.append(("Install uv:", "curl -LsSf https://astral.sh/uv/install.sh | sh"))
     steps.append(("Install workspace dependencies:", "uv sync"))
 
     body = Text()
-    body.append("  cd ", style="dim")
-    body.append(str(project_dir), style="bold #59C1D5")
-    body.append("\n\n")
     body.append("Finish setup\n\n", style="bold #C6D300")
     for index, (label, command) in enumerate(steps, start=1):
         body.append(f"  {index}. {label}\n", style="dim")
