@@ -21,6 +21,11 @@ dependencies = [
   "tomli>=2.0; python_version < '3.11'",
 ]
 
+[project.urls]
+Homepage = "https://github.com/dlt-hub/dlthub-start"
+Repository = "https://github.com/dlt-hub/dlthub-start"
+Issues = "https://github.com/dlt-hub/dlthub-start/issues"
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8",
