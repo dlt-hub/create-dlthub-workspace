@@ -83,9 +83,7 @@ LINK_DOCS_LABEL = "github.com/dlt-hub/dlthub-ai-workbench"
 
 # Step labels (prose halves of the (label, command) tuples) -------------
 STEPS_LABEL_CD = "Change into the workspace:"
-STEPS_LABEL_RUN_BREWERIES = (
-    "Run the ingestion pipeline in dltHub (you'll be prompted to connect/login):"
-)
+STEPS_LABEL_RUN_BREWERIES = "Run the ingestion pipeline in dltHub (you'll be prompted to connect/login):"
 STEPS_LABEL_RUN_PLACEHOLDER = "Run the placeholder pipeline in dltHub (you'll be prompted to connect/login):"
 STEPS_LABEL_OPEN_DASHBOARD = "Open the dltHub dashboard:"
 STEPS_LABEL_EDIT_PIPELINE = "Edit pipeline.py to swap the placeholder for a real source, then re-run."
