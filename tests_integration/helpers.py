@@ -28,6 +28,6 @@ def scaffold_has_ai_files(scaffold: str = "starter_workspace") -> bool:
     return (scaffold_dir / ".agents").is_dir()
 
 
-# Files we expect to find at the workspace root after a real `create-dlthub-workspace
+# Files we expect to find at the workspace root after a real `dlthub-start
 # --yes` run, organized by agent so individual tests can assert on subsets.
 EXPECTED_AGENT_ROOT_ENTRIES = AGENT_FILES

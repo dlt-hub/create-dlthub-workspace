@@ -1,4 +1,4 @@
-# create-dlthub-workspace
+# dlthub-start
 
 Create a ready-to-run dltHub workspace with example pipelines, local `uv`
 dependency setup, and bundled dltHub AI workbench files.
@@ -8,13 +8,13 @@ dependency setup, and bundled dltHub AI workbench files.
 `uvx` is the recommended way to run the CLI:
 
 ```bash
-uvx create-dlthub-workspace my-project
+uvx dlthub-start my-project
 ```
 
 If `uvx` is not available yet, use `pipx run` instead:
 
 ```bash
-pipx run create-dlthub-workspace my-project
+pipx run dlthub-start my-project
 ```
 
 The CLI prompts for a scaffold and AI workbench files, checks for `uv`, offers
@@ -23,7 +23,7 @@ to install it if needed, offers to run `uv sync`, and prints next steps.
 For a non-interactive setup with the recommended defaults:
 
 ```bash
-uvx create-dlthub-workspace my-project --yes
+uvx dlthub-start my-project --yes
 cd my-project
 uv run dlthub run load_breweries
 uv run dlthub show
@@ -45,7 +45,7 @@ install `uv` yourself, use the official
 ## Usage
 
 ```bash
-uvx create-dlthub-workspace <project-dir> [options]
+uvx dlthub-start <project-dir> [options]
 ```
 
 Common options:
@@ -64,10 +64,10 @@ Common options:
 Examples:
 
 ```bash
-uvx create-dlthub-workspace my-project --yes
-uvx create-dlthub-workspace my-project --scaffold minimal_workspace
-uvx create-dlthub-workspace my-project --agent claude --agent codex
-uvx create-dlthub-workspace my-project --yes --skip-uv-sync
+uvx dlthub-start my-project --yes
+uvx dlthub-start my-project --scaffold minimal_workspace
+uvx dlthub-start my-project --agent claude --agent codex
+uvx dlthub-start my-project --yes --skip-uv-sync
 ```
 
 ## Scaffolds
@@ -128,7 +128,7 @@ uv sync
 
 `uvx: command not found`
 
-Use `pipx run create-dlthub-workspace my-project` instead. The CLI will still
+Use `pipx run dlthub-start my-project` instead. The CLI will still
 offer to install `uv` before syncing the generated workspace dependencies.
 
 `Target directory already exists and is not empty`
@@ -141,7 +141,7 @@ non-empty workspace directory.
 Re-run with `--verbose` to see subprocess output:
 
 ```bash
-uvx create-dlthub-workspace my-project --yes --verbose
+uvx dlthub-start my-project --yes --verbose
 ```
 
 If the scaffold was created successfully, you can also enter the workspace and

@@ -227,7 +227,7 @@ def print_banner() -> None:
     console.print(
         Panel(
             _build_logo(),
-            title=f"create-dlthub-workspace v{VERSION}",
+            title=f"dlthub-start v{VERSION}",
             title_align="left",
             border_style="#59C1D5",
             padding=(1, 2),

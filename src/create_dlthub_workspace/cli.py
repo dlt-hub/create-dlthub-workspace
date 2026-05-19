@@ -1,4 +1,4 @@
-"""Command-line entrypoint for create-dlthub-workspace."""
+"""Command-line entrypoint for the `dlthub-start` CLI."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def _ensure_utf8_io_on_windows() -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="create-dlthub-workspace",
+        prog="dlthub-start",
         description="Scaffold a new dltHub workspace.",
     )
     parser.add_argument("project_dir", help="Directory to create for the new workspace.")

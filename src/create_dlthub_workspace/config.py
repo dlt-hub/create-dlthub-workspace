@@ -1,4 +1,4 @@
-"""Project-wide constants for the create-dlthub-workspace CLI."""
+"""Project-wide constants for the `dlthub-start` CLI."""
 
 from __future__ import annotations
 

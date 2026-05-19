@@ -70,8 +70,7 @@ module = "tomli"
 ignore_missing_imports = true
 
 [project.scripts]
-create-dlthub-workspace = "create_dlthub_workspace.cli:main"
-create-dlthub-project = "create_dlthub_workspace.cli:main"
+dlthub-start = "create_dlthub_workspace.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/create_dlthub_workspace"]

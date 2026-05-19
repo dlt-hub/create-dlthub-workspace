@@ -62,7 +62,7 @@ workspace: ## Create a test workspace under examples/ (pre-deletes existing)
 	@case "$(TEST_WORKSPACE_NAME)" in */*|*..*|"") echo "invalid TEST_WORKSPACE_NAME: $(TEST_WORKSPACE_NAME)"; exit 1;; esac
 	@echo "Recreating examples/$(TEST_WORKSPACE_NAME)"
 	rm -rf -- "examples/$(TEST_WORKSPACE_NAME)"
-	uv run create-dlthub-workspace "examples/$(TEST_WORKSPACE_NAME)"
+	uv run dlthub-start "examples/$(TEST_WORKSPACE_NAME)"
 
 ci: compile lint-ci test test-integration check-ai build ## Run all CI checks locally
 

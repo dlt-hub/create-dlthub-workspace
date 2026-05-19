@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve `create-dlthub-workspace`. This project uses a
+Thanks for helping improve `dlthub-start`. This project uses a
 standard Python `src/` layout, `uv` for environment management, `ruff` for
 formatting/linting, and `mypy` for type checking.
 
@@ -18,27 +18,27 @@ make dev
 Run the CLI from the checkout:
 
 ```bash
-uv run create-dlthub-workspace --help
+uv run dlthub-start --help
 ```
 
 Create a workspace with the recommended non-interactive path:
 
 ```bash
-uv run create-dlthub-workspace my-workspace --yes
+uv run dlthub-start my-workspace --yes
 ```
 
 Create a workspace without running the generated workspace dependency sync:
 
 ```bash
-uv run create-dlthub-workspace my-workspace --yes --skip-uv-sync
+uv run dlthub-start my-workspace --yes --skip-uv-sync
 ```
 
 Choose a scaffold or AI workbench explicitly:
 
 ```bash
-uv run create-dlthub-workspace my-workspace --scaffold minimal_workspace
-uv run create-dlthub-workspace my-workspace --agent claude
-uv run create-dlthub-workspace my-workspace --agent claude --agent codex
+uv run dlthub-start my-workspace --scaffold minimal_workspace
+uv run dlthub-start my-workspace --agent claude
+uv run dlthub-start my-workspace --agent claude --agent codex
 ```
 
 Create a disposable test workspace under `examples/`:
@@ -150,14 +150,13 @@ from the pinned workbench ref.
 Before publishing, verify:
 
 ```bash
-uv run create-dlthub-workspace --help
+uv run dlthub-start --help
 make ci
 ```
 
-The package exposes two equivalent console commands:
+The package exposes a single console command:
 
 ```text
-create-dlthub-workspace
-create-dlthub-project
+dlthub-start
 ```
 

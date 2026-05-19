@@ -120,8 +120,8 @@ class WorkspaceCreationSlowTests(unittest.TestCase):
 
 class InstalledEntryPointTests(unittest.TestCase):
     """Spawns the actual CLI binary via subprocess to validate the installed
-    entry point (`create-dlthub-workspace` on PATH). Uses --skip-uv-sync to
-    stay fast — the sync itself is covered by WorkspaceCreationSlowTests.
+    entry point (`dlthub-start` on PATH). Uses --skip-uv-sync to stay fast —
+    the sync itself is covered by WorkspaceCreationSlowTests.
     """
 
     def test_subprocess_invocation_succeeds(self) -> None:
