@@ -1,2 +1,2 @@
 [destination.warehouse]
-destination_type="motherduck"
+destination_type = "duckdb"
