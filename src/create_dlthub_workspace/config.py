@@ -41,7 +41,7 @@ TOOLKITS = (
 # To bump: pick a new SHA (the workbench repo has no tags today), update the
 # constant below, run `make generate-ai`, commit the resulting scaffold diff
 # alongside this change.
-WORKBENCH_REF: str | None = "2e2a3695b6fb039d2a4638a0f7e23751fe33b16d"
+WORKBENCH_REF: str | None = "42ddb99ded93bfd62e21c819e6e61fecf3520b59"
 
 
 @dataclass(frozen=True)

@@ -4,8 +4,6 @@
 they are essential for ANY work in this project
 - `transformations-workflow`
 - `rest-api-pipeline-workflow`
-- `dlthub-runtime-profiles`
-- `dlthub-runtime-workflow`
 - `data-exploration-workflow`
 
 ## Security
