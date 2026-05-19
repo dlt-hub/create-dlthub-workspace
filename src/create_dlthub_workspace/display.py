@@ -224,10 +224,11 @@ def _build_logo() -> Text:
 
 
 def print_banner() -> None:
+    title = Text.from_markup(f"dlthub-start v{VERSION} [bold #C6D300](beta)[/bold #C6D300]")
     console.print(
         Panel(
             _build_logo(),
-            title=f"dlthub-start v{VERSION}",
+            title=title,
             title_align="left",
             border_style="#59C1D5",
             padding=(1, 2),

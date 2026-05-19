@@ -12,6 +12,9 @@ license = { file = "LICENSE" }
 authors = [
   { name = "dltHub" },
 ]
+classifiers = [
+  "Development Status :: 4 - Beta",
+]
 dependencies = [
   "rich>=13.7",
   "beaupy>=3.9",

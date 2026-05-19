@@ -108,6 +108,13 @@ class PrintBannerTests(unittest.TestCase):
 
         self.assertIn(f"v{VERSION}", output)
 
+    def test_renders_beta_tag_next_to_version(self) -> None:
+        with console.capture() as cap:
+            print_banner()
+        output = cap.get()
+
+        self.assertIn("(beta)", output)
+
 
 if __name__ == "__main__":
     unittest.main()

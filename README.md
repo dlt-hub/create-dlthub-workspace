@@ -1,4 +1,4 @@
-# dlthub-start
+# dlthub-start (beta)
 
 Create a ready-to-run dltHub workspace with example pipelines, local `uv`
 dependency setup, and bundled dltHub AI workbench files.
