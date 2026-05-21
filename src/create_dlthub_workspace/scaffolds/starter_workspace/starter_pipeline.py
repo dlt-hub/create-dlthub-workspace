@@ -1,8 +1,8 @@
 """Open Brewery DB ingestion pipeline.
 
-Loads public brewery records from a no-auth REST API into a local warehouse.
-The example is intentionally small so a new workspace can run without secrets,
-API keys, or signups.
+Loads public brewery records from a no-auth REST API into the configured
+warehouse. Dev runs on a local DuckDB file; prod uses MotherDuck (see
+.dlt/prod.secrets.toml for the token).
 """
 
 import dlt
@@ -65,7 +65,7 @@ starter_pipe = dlt.pipeline(
     expose={"tags": ["ingest"], "display_name": "Brewery data ingest"},
 )
 def load_breweries():
-    """Load public brewery records into the local warehouse."""
+    """Load public brewery records into the configured warehouse."""
     # Cap to a handful of pages so starter runs finish quickly.
     load_info = starter_pipe.run(brewery_rest_api_source().add_limit(10))
     print(load_info)
