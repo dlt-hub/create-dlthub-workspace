@@ -55,6 +55,98 @@ data-exploration:
     .agents/skills/data-exploration-workflow/SKILL.md:
       sha3_256: 0f95637420cf0d3e08842dbc66e28935b74943bb6fa0e60175362e1c66309580
   name: data-exploration
+data-quality:
+  version: 0.1.0
+  description: Add checks and metrics to dlt pipelines — inspect schema for candidates,
+    define column-level validations and load metrics, run them on every pipeline load,
+    and review results with failure diagnosis.
+  tags:
+  - dlt
+  - data-quality
+  - validation
+  - checks
+  - metrics
+  dependencies:
+  - init
+  workflow_entry_skill: setup-data-quality
+  installed_at: '1970-01-01T00:00:00+00:00'
+  agent: codex
+  files:
+    .agents/skills/define-data-quality-checks/SKILL.md:
+      sha3_256: 909c820c87ae3c8faf928ba42fb5a6d1c1906786dac62f9629e7d7a98ca638c6
+    .agents/skills/review-data-quality/SKILL.md:
+      sha3_256: 914f203a5064ff9c53b1d2bf511bcb0f5de65d3437930345a68acdc7da594ab8
+    .agents/skills/run-data-quality/SKILL.md:
+      sha3_256: 11e8ad8cc49135fa80acff8895999ab2ec276995889440a373d59b071da96964
+    .agents/skills/setup-data-quality/SKILL.md:
+      sha3_256: 547524d480323efda854bf7f32359410bb6cfb49a6f350f8b877cd1b89dabd04
+    .agents/skills/data-quality-dq-rules/SKILL.md:
+      sha3_256: 16d99324aaeb4307f4fb3844fad59a9d11a504055d8820715b7d412d27f748de
+    .agents/skills/data-quality-workflow/SKILL.md:
+      sha3_256: 4d780f736b6d33af952c715e2384429b25c22f46e51c025fc29a1b4d993a9e66
+  name: data-quality
+dlthub-platform:
+  version: 0.1.2
+  description: Deploy dlt workspace and pipelines to the dltHub Platform
+  tags:
+  - dlt
+  - deploy
+  - dlthub
+  - platform
+  dependencies:
+  - init
+  workflow_entry_skill: setup-runtime
+  installed_at: '1970-01-01T00:00:00+00:00'
+  agent: codex
+  files:
+    .agents/skills/debug-deployment/SKILL.md:
+      sha3_256: abe021c4291ff456a57feee9b54c3e6b07c43fca82388384d80697e21459689b
+    .agents/skills/deploy-workspace/SKILL.md:
+      sha3_256: b4bb1ab71dfbb522808a5bc915a66ed24bd5bf88e09b3792d93a6bebe08764f1
+    .agents/skills/deploy-workspace/advanced-patterns.md:
+      sha3_256: 6ae7f2d23c83cc074c50902688b2253c429cd89c39b692568f9f2f5f40243db8
+    .agents/skills/deploy-workspace/scheduling-triggers.md:
+      sha3_256: 2dd11cd588d5b3972dcad8d4b2901f6513c2034c46ec86e9b25df61cb8b0e0fd
+    .agents/skills/prepare-deployment/SKILL.md:
+      sha3_256: e7461da7f937bef1650b998b99a4c4a796153987da8e3507d9c6bd5ed07d0e3c
+    .agents/skills/prepare-deployment/check_destination.py:
+      sha3_256: 34ff49ae54a875f34f7900612d76b31d7aaf00926cc80c40d689474af4d447ec
+    .agents/skills/prepare-deployment/deployment-module.md:
+      sha3_256: 7febda25e999ddd05551036eeff285758fef41c7a25ec7dedd41dfc2f1151d24
+    .agents/skills/setup-runtime/SKILL.md:
+      sha3_256: 098cd5c4ab2cef4c8da001cd4a36a5236340a48441e224cfe0f900c46119618e
+    .agents/skills/dlthub-platform-profiles/SKILL.md:
+      sha3_256: 458632b60a54ccb828a7e206ea91895ad3488735afc530476572c1929bce4b41
+    .agents/skills/dlthub-platform-workflow/SKILL.md:
+      sha3_256: 7b8885245d820928395f08f89f0dd8a0784cdd51ba3d4f73b56f093c18b28a8d
+  name: dlthub-platform
+filesystem-pipeline:
+  version: 0.1.0
+  description: Load files (CSV, Parquet, JSONL, or custom) from local disk, S3, GCS,
+    Azure, or SFTP into a destination using dlt's filesystem source.
+  tags:
+  - dlt
+  - filesystem
+  - s3
+  - gcs
+  - azure
+  - sftp
+  - csv
+  - parquet
+  - jsonl
+  dependencies:
+  - init
+  workflow_entry_skill: create-filesystem-pipeline
+  installed_at: '1970-01-01T00:00:00+00:00'
+  agent: codex
+  files:
+    .agents/skills/add-incremental-loading/SKILL.md:
+      sha3_256: 71651e931da9336eafb103bd5f33826075df7c167d9ce32279031282305fc1cc
+    .agents/skills/create-filesystem-pipeline/SKILL.md:
+      sha3_256: 98f4df9c847c6be29bf38f309418f4bc2b09f1eefe141d205583115d4a1885dd
+    .agents/skills/filesystem-pipeline-workflow/SKILL.md:
+      sha3_256: 28c4e3c09fcddf32423105fdde85c1f328dd165c3474d8d70ddbe09ef7203f1a
+  name: filesystem-pipeline
 rest-api-pipeline:
   version: 0.1.0
   description: 'Build REST API pipelines with dlt: scope, debug and validate data'
@@ -88,6 +180,42 @@ rest-api-pipeline:
   mcp_servers:
   - dlt-workspace-mcp
   name: rest-api-pipeline
+sql-database-pipeline:
+  version: 0.1.0
+  description: 'Build SQL database pipelines with dlt: connect to any SQL source,
+    load tables to a destination, tune performance with backends'
+  tags:
+  - dlt
+  - etl
+  - data-pipeline
+  - python
+  - sql
+  - database
+  dependencies:
+  - init
+  workflow_entry_skill: find-source
+  installed_at: '1970-01-01T00:00:00+00:00'
+  agent: codex
+  files:
+    .agents/skills/add-table/SKILL.md:
+      sha3_256: 3bfd4cb487748055e6d52106bff21364292860e872a98245c705c1f75f7c5435
+    .agents/skills/adjust-table/SKILL.md:
+      sha3_256: ca6662f2924086621d0553c3151e43ad31105fb0df6fae84b1bbed768b470b87
+    .agents/skills/create-sql-database-pipeline/SKILL.md:
+      sha3_256: 90b52616aa42b95013c86be314625d7fd2b1a5b69ffc5bdf8ce769be6cd1eb51
+    .agents/skills/debug-pipeline/SKILL.md:
+      sha3_256: ba1c3bac833d63b4f56d0639cbbf8b6a5d8d901a24b7cea0a06efc0ae601f883
+    .agents/skills/find-source/SKILL.md:
+      sha3_256: 2e3da4ff822a66feed63ec315114b1317e9cba062f96e57ee02e0ee651fa0048
+    .agents/skills/validate-data/SKILL.md:
+      sha3_256: c418cac9d1a685e2c7db71d9a90ae1e74e9b57fc4961028369bb1784d762e7f4
+    .agents/skills/view-data/SKILL.md:
+      sha3_256: 861538e8835b3f0edc920028d128fdf40577e7837ad4b81c35faa9774e839b5c
+    .agents/skills/sql-database-pipeline-workflow/SKILL.md:
+      sha3_256: 0b36a2f1801b324ecf9662b470ae6ec73368c350482fc88da2a3620957318b7b
+  mcp_servers:
+  - dlt-workspace-mcp
+  name: sql-database-pipeline
 transformations:
   version: 0.1.0
   description: Transform raw dlt pipeline data into a Canonical Data Model. Build
