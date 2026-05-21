@@ -10,7 +10,7 @@ import dlt
 from dlt.hub import run
 from ibis import ir
 
-from starter_pipeline import load_breweries, starter_pipe
+from starter_pipeline import load_breweries
 
 
 @dlt.hub.transformation(write_disposition="replace")
@@ -62,7 +62,8 @@ starter_transform_pipe = dlt.pipeline(
 )
 def transform_breweries():
     """Transform raw brewery data into clean tables and metrics."""
-    load_info = starter_transform_pipe.run(brewery_metrics(starter_pipe.dataset()))
+    source_pipe = dlt.attach(pipeline_name="starter_pipeline")
+    load_info = starter_transform_pipe.run(brewery_metrics(source_pipe.dataset()))
     print(load_info)
 
 
