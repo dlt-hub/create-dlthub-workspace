@@ -7,16 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-21
+
 ### Added
 - Interactive project name prompt with default `my-workspace`, plus tests.
+- Starter `prod` environment now defaults to MotherDuck: `.dlt/prod.secrets.toml` template, `motherduck` extra in `pyproject.toml`, and a "paste your MotherDuck token" step in the next-steps panel.
+- Bundled toolkits expanded with `data-quality`, `dlthub-platform`, `filesystem-pipeline`, and `sql-database-pipeline`; regenerated AI workbench files reflect the new set.
+- `CONTRIBUTING.md` notes the `git add -f` workaround for scaffold templates that match the shipped `.gitignore`.
 
 ### Changed
 - Centralized user-facing strings into `strings.py`; refreshed onboarding and next-steps copy.
 - Onboarding guidance now always recommends `dlthub-start@latest`.
 - Bumped `WORKBENCH_REF` to `42ddb99` and refreshed the bundled AI workbench scaffold.
+- `starter_transformations.py` now reads upstream data via `dlt.attach(...)` instead of importing `starter_pipe`, avoiding pipeline re-instantiation as an import side effect.
 
 ### Removed
 - Stripped `uv.lock` from the bundled scaffold.
+- `.dlt/access.config.toml` from the starter scaffold (notebooks share the `prod` env).
+- Dead `[destination.warehouse]` block in `.dlt/config.toml` (per-env configs set their own destination).
 
 ### Fixed
 - MCP dependency error in scaffolds.
