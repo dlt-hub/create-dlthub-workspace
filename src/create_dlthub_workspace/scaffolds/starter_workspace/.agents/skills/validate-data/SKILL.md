@@ -1,16 +1,16 @@
 ---
 name: validate-data
-description: Validate schema and data after a successful dlt pipeline load. Use when the user wants to check if loaded data looks correct, inspect table schemas, fix data types, flatten nested structures, or refine the data shape.
+description: Validate schema and data after a successful dlt SQL database pipeline load. Use when the user wants to check if loaded data looks correct, inspect table schemas, fix data types, or verify column mappings from the source database.
 argument-hint: "[pipeline-name] [concerns]"
 ---
 
 # Validate loaded data
 
-After a successful pipeline load, verify the schema and data make sense. Fix data types, nested structures, and missing columns as needed.
+After a successful pipeline load, verify the schema and data make sense.
 
 Parse `$ARGUMENTS`:
 - `pipeline-name` (optional): the dlt pipeline name. If omitted, infer from session context. If ambiguous, ask the user and stop.
-- `hints` (optional, after `--`): specific validation concerns
+- `hints` (optional, after `--`): specific validation concerns (e.g. "decimal precision", "missing columns")
 
 ## 1. Inspect schema
 
@@ -19,54 +19,77 @@ Parse `$ARGUMENTS`:
 ```
 dlt pipeline <pipeline_name> schema --format mermaid
 ```
-Show the mermaid diagram to the user. This gives a quick overview of tables, columns, types, and relationships (parent/child).
+
+Show the mermaid diagram to the user. This gives a quick overview of tables, columns, types, and relationships.
 
 ## 2. View the data
 
 ### For the human: Workspace Dashboard
 
-Tell the user to run Workspace Dashboard:
+Tell the user to run the Workspace Dashboard:
 ```
 dlt pipeline <pipeline_name> show
 ```
 This opens a browser with table schemas, row counts, and sample data.
 
-### For the agent: set up pipeline MCP server to query the data
+### For the agent: query via pipeline dataset API
 
-You have mcp with a right set of tools available
+```python
+import dlt
+
+pipeline = dlt.attach("<pipeline_name>")
+dataset = pipeline.dataset()
+
+# Row counts for all tables
+dataset.row_counts().df()
+
+# Sample rows from a table
+dataset["<table_name>"].head().df()
+```
+
+Never import the destination library (e.g. `duckdb`) directly — use `pipeline.dataset()` instead, which is destination-agnostic.
 
 ## 3. Review with user
 
-Ask the user if the schema and data look right. Common issues to address:
+Ask the user if the schema and data look right. Common issues for SQL sources:
 
-### Data type fixes
+### Data type mismatches
 
-Use `processing_steps` in the resource config to transform data before loading. Available steps: `map`, `filter`, `yield_map`.
+The default `sqlalchemy` backend reflects types from the source DB. If types look wrong after switching backends (e.g. to `pyarrow`), check `reflection_level`:
 
 ```python
-"processing_steps": [
-    {"map": lambda item: {**item, "amount": Decimal(item["amount"])}},
-]
+sql_table(
+    table="<table>",
+    reflection_level="full_with_precision",  # preserves decimal scale and string length
+)
 ```
 
-**IMPORTANT:** NEVER convert monetary amounts or precision-sensitive values to `float`. Always use `Decimal`.
+**IMPORTANT:** Never convert monetary or precision-sensitive values to `float`. Always keep them as `Decimal`.
 
-### Nested structures
+### Missing or null columns
 
-dlt auto-unnests nested arrays into child tables (e.g., `results` inside a response becomes `<resource>__results`). This is often fine for analytics. If the user wants a flat structure, use `yield_map` to flatten, or adjust `data_selector` to point deeper into the response.
+Columns that are all-null on first load won't have inferred types. Add explicit column hints:
 
-### Missing columns
+```python
+sql_table(
+    table="<table>",
+    columns={"amount": {"data_type": "decimal", "precision": 18, "scale": 4}},
+)
+```
 
-Columns that are all-null on first load won't have inferred types. Options:
-- Add `columns` hints to the resource config: `"columns": {"field": {"data_type": "text"}}`
-- Add `group_by` or other API params to populate the columns
+> **Note:** `columns={}` hints do not work with backends that skip dlt normalisation (`pyarrow`, `pandas`, `connectorx`). If you need schema hints and are using one of those backends, use `table_adapter_callback` instead.
+
+### Unexpected column names
+
+dlt normalizes column names to snake_case by default. If source DB column names contain spaces or special chars, they are renamed. Check the schema mermaid output to see the mapped names.
 
 ## 4. Iterate
 
-Re-run the pipeline after changes (`dev_mode` gives a fresh dataset each time). Use `debug-pipeline` to inspect traces and load packages after each run. Inspect again with MCP or `dlt pipeline <name> schema --format mermaid`. Repeat until the user is happy with the schema.
+Re-run the pipeline after changes (`dev_mode=True` gives a fresh dataset each time). Use `debug-pipeline` to inspect traces after each run. Repeat until the user is satisfied with the schema.
 
 ## Next steps
 
-- **User is happy with data** → suggest `new-endpoint` for more resources, `view-data` for querying, or the `data-exploration` toolkit for interactive notebooks and reports
+- **User is happy with the data** → use `adjust-table` to remove limits and configure incremental loading for production
+- **Need to add more tables** → use `add-table`
 - **Need to fix pipeline code** → edit and re-run with `debug-pipeline`
-- **User wants to see the data** -> Workspace Dashboard with command above
+- **User wants to explore data** → hand over to **data-exploration** toolkit for notebooks and charts
