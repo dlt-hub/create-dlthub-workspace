@@ -83,13 +83,14 @@ LINK_DOCS_LABEL = "github.com/dlt-hub/dlthub-ai-workbench"
 
 # Step labels (prose halves of the (label, command) tuples) -------------
 STEPS_LABEL_CD = "Change into the workspace:"
-STEPS_LABEL_ADD_MOTHERDUCK_TOKEN = (
-    "Add your MotherDuck token to .dlt/prod.secrets.toml -- open the file and "
-    "follow the instructions inside (sign up: https://app.motherduck.com/)."
+STEPS_LABEL_ADD_MOTHERDUCK_CREDENTIALS = (
+    "Add your MotherDuck database name and token to .dlt/prod.secrets.toml "
+    "(open the file and follow the instructions inside)."
 )
 STEPS_LABEL_RUN_BREWERIES = "Run the ingestion pipeline in dltHub (you'll be prompted to connect/login):"
 STEPS_LABEL_RUN_PLACEHOLDER = "Run the placeholder pipeline in dltHub (you'll be prompted to connect/login):"
-STEPS_LABEL_OPEN_DASHBOARD = "Open the dltHub dashboard:"
+STEPS_LABEL_VIEW_JOB_RUNS = "View runs for the brewery pipeline:"
+STEPS_LABEL_VIEW_PLACEHOLDER_RUNS = "View runs for the placeholder pipeline:"
 STEPS_LABEL_EDIT_PIPELINE = "Edit pipeline.py to swap the placeholder for a real source, then re-run."
 STEPS_LABEL_INSTALL_UV = "Install uv:"
 STEPS_LABEL_INSTALL_DEPS = "Install workspace dependencies:"
@@ -100,5 +101,6 @@ CMD_INSTALL_UV_UNIX = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 CMD_UV_SYNC = "uv sync"
 CMD_DLTHUB_RUN_BREWERIES = "uv run dlthub run load_breweries"
 CMD_DLTHUB_RUN_LOAD_DATA = "uv run dlthub run load_data"
-CMD_DLTHUB_SHOW = "uv run dlthub show"
+CMD_DLTHUB_JOB_RUNS_SHOW_BREWERIES = "uv run dlthub job runs show starter_pipeline.load_breweries"
+CMD_DLTHUB_JOB_RUNS_SHOW_LOAD_DATA = "uv run dlthub job runs show minimal_pipeline.load_data"
 CMD_CD = "cd {project_dir}"
