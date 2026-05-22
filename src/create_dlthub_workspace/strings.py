@@ -83,9 +83,9 @@ LINK_DOCS_LABEL = "github.com/dlt-hub/dlthub-ai-workbench"
 
 # Step labels (prose halves of the (label, command) tuples) -------------
 STEPS_LABEL_CD = "Change into the workspace:"
-STEPS_LABEL_ADD_MOTHERDUCK_TOKEN = (
-    "Add your MotherDuck token to .dlt/prod.secrets.toml -- open the file and "
-    "follow the instructions inside (sign up: https://app.motherduck.com/)."
+STEPS_LABEL_ADD_MOTHERDUCK_CREDENTIALS = (
+    "Add your MotherDuck database name and token to .dlt/prod.secrets.toml "
+    "(open the file and follow the instructions inside)."
 )
 STEPS_LABEL_RUN_BREWERIES = "Run the ingestion pipeline in dltHub (you'll be prompted to connect/login):"
 STEPS_LABEL_RUN_PLACEHOLDER = "Run the placeholder pipeline in dltHub (you'll be prompted to connect/login):"

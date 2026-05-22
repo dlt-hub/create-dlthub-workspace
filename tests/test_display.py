@@ -35,6 +35,8 @@ class PrintNextStepsTests(unittest.TestCase):
         self.assertIn("starter_pipeline.py", output)
         self.assertIn("starter_transformations.py", output)
         self.assertIn(".agents/", output)
+        self.assertIn("prod.secrets.toml", output)
+        self.assertIn("database name and token", output)
         self.assertIn("uv run dlthub run load_breweries", output)
 
     def test_minimal_scaffold_renders_with_its_pipeline_command(self) -> None:

@@ -18,7 +18,7 @@ console = Console()
 
 NEXT_STEPS: dict[str, tuple[tuple[str, str | None], ...]] = {
     "starter_workspace": (
-        (strings.STEPS_LABEL_ADD_MOTHERDUCK_TOKEN, None),
+        (strings.STEPS_LABEL_ADD_MOTHERDUCK_CREDENTIALS, None),
         (strings.STEPS_LABEL_RUN_BREWERIES, strings.CMD_DLTHUB_RUN_BREWERIES),
         (strings.STEPS_LABEL_OPEN_DASHBOARD, strings.CMD_DLTHUB_SHOW),
     ),
