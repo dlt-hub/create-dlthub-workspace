@@ -29,7 +29,6 @@ TOOLKITS = (
     "data-exploration",
     "data-quality",
     "dlthub-platform",
-    "dlthub-runtime",
     "filesystem-pipeline",
     "rest-api-pipeline",
     "sql-database-pipeline",

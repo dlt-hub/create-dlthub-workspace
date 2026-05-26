@@ -86,6 +86,31 @@ def _run(cmd: list[str], cwd: Path) -> None:
     subprocess.run(cmd, cwd=cwd, env=_isolated_env(), check=True)
 
 
+def _mirror_agent_skills(work: Path) -> None:
+    """Copy each skill from .agents/skills/ into .claude/skills/ and .cursor/skills/.
+
+    Upstream `dlthub ai init` only seeds the core always-on skills into Claude
+    and Cursor's dedicated skill dirs, expecting agents to discover the rest
+    via .agents/. But Claude and Cursor only auto-discover skills inside their
+    own dirs, so toolkit skills become invisible to them. Mirror them so both
+    agents see the full set. Skip-if-exists preserves the core skills already
+    placed there by `dlthub ai init`.
+    """
+    source = work / ".agents" / "skills"
+    if not source.is_dir():
+        return
+    for target_root in (work / ".claude" / "skills", work / ".cursor" / "skills"):
+        if not target_root.is_dir():
+            continue
+        for skill_dir in sorted(source.iterdir()):
+            if not skill_dir.is_dir():
+                continue
+            dest = target_root / skill_dir.name
+            if dest.exists():
+                continue
+            shutil.copytree(skill_dir, dest)
+
+
 def _branch_args() -> list[str]:
     """Render --branch only when a ref is pinned; otherwise let dlthub use upstream default."""
     return ["--branch", WORKBENCH_REF] if WORKBENCH_REF else []
@@ -141,6 +166,9 @@ def regenerate(scaffold_dir: Path) -> None:
                 ],
                 cwd=work,
             )
+
+        print("  mirror .agents/skills -> .claude/skills, .cursor/skills")
+        _mirror_agent_skills(work)
 
         # Swap the freshly generated AI entries into the source scaffold.
         for entry in AI_GENERATED_ENTRIES:
