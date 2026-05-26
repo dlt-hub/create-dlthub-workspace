@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-26
+
+### Added
+- Per-tool AI skills now ship in scaffolds: full `SKILL.md` (and reference) trees under `.claude/skills/` and `.cursor/skills/` for both `starter_workspace` and `minimal_workspace`, exposing toolkit workflows (e.g. `rest-api-pipeline-workflow`, `data-quality-workflow`, `dlthub-platform-workflow`, `transformations-workflow`) and per-step skills (`create-*`, `add-*`, `adjust-*`, `debug-*`, `deploy-*`, `explore-data`, `build-notebook`, `init-dlthub-workspace`, ...) directly to Claude Code and Cursor. `scripts/generate_ai.py` was extended to materialize them.
+- CI `lock-check` job that runs `uv lock --check` to fail PRs when `uv.lock` drifts from `pyproject.toml`.
+
+### Changed
+- Refreshed onboarding guidance for `dlt show run` and MotherDuck credentials.
+
+### Fixed
+- MotherDuck credentials handling in scaffolded workspaces.
+
 ## [0.3.0] - 2026-05-21
 
 ### Added
